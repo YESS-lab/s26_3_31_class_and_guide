@@ -1,4 +1,26 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(.*)",
+      "Read",
+      "Edit",
+      "MultiEdit",
+      "Write",
+      "Glob",
+      "Grep",
+      "LS",
+      "Task",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "deny": [
+      "Read(./.entire/metadata/**)"
+    ],
+    "additionalDirectories": [
+      "/Users/glnelson/dev/s26_march26_example_claude_skills_agent_prototyping/.claude",
+        "./claude"
+    ]
+  },
   "hooks": {
     "PostToolUse": [
       {
@@ -74,24 +96,6 @@
           }
         ]
       }
-    ]
-  },
-  "permissions": {
-    "allow": [
-      "Bash(.*)",
-      "Read",
-      "Edit",
-      "MultiEdit",
-      "Write",
-      "Glob",
-      "Grep",
-      "LS",
-      "Task",
-      "WebFetch",
-      "WebSearch"
-    ],
-    "deny": [
-      "Read(./.entire/metadata/**)"
     ]
   }
 }
