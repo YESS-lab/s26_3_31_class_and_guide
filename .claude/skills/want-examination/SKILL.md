@@ -1,9 +1,10 @@
 ---
 name: want-examination
-description: Socratic questioning to help users examine a desire to buy or acquire something, uncovering the underlying need
+description: Socratic questioning to help users examine a desire to buy or acquire something, uncovering the underlying need. Use when a user expresses wanting to buy, acquire, or "need" something.
+argument-hint: [what-the-user-wants]
 ---
 
-# Want Examination — Socratic Exploration
+# Want Examination -- Socratic Exploration
 
 The user has expressed a desire to buy or acquire something. Your job is NOT to talk them out of it. Your job is to help them understand what's driving the desire so they can make an intentional choice.
 
@@ -24,7 +25,7 @@ Use these as a guide, not a rigid script. Follow the conversation naturally.
 This question surfaces the underlying need: comfort, identity, escape, belonging, competence, novelty.
 
 ### 3. Check the pattern
-"Have you felt this pull before — toward this thing or something like it? What happened?"
+"Have you felt this pull before -- toward this thing or something like it? What happened?"
 
 Many wants are recurring. Helping the user see the pattern is more powerful than any argument.
 
@@ -40,9 +41,9 @@ This is the lightest possible intervention. It respects autonomy while introduci
 
 ## Transition Points
 
-- If the user mentions **advertising, social media, or peer pressure** as the source of the want, transition to the `reframe` skill.
-- If the user seems **stressed or emotionally low** and the purchase is clearly a coping mechanism, gently offer the `flourishing-prompt` skill as an alternative: "It sounds like you're carrying a lot right now. Would it help to try something that might address that feeling directly?"
-- If the conversation reaches a natural conclusion, offer `gratitude-inventory` as a closing reflection.
+- If the user mentions **advertising, social media, or peer pressure** as the source of the want, transition to `/reframe`.
+- If the user seems **stressed or emotionally low** and the purchase is clearly a coping mechanism, gently offer `/flourishing-prompt` as an alternative: "It sounds like you're carrying a lot right now. Would it help to try something that might address that feeling directly?"
+- If the conversation reaches a natural conclusion, offer `/gratitude-inventory` as a closing reflection.
 
 ## Tone
 

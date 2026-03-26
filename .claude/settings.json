@@ -11,14 +11,19 @@
       "LS",
       "Task",
       "WebFetch",
-      "WebSearch"
+      "WebSearch",
+      "Edit(/.claude/skills/session-start/**)",
+      "Edit(/.claude/skills/want-examination/**)",
+      "Edit(/.claude/skills/reframe/**)",
+      "Edit(/.claude/skills/flourishing-prompt/**)",
+      "Edit(/.claude/skills/gratitude-inventory/**)"
     ],
     "deny": [
       "Read(./.entire/metadata/**)"
     ],
     "additionalDirectories": [
       "/Users/glnelson/dev/s26_march26_example_claude_skills_agent_prototyping/.claude",
-        "./claude"
+      "./claude"
     ]
   },
   "hooks": {
