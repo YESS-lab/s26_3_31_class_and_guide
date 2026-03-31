@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "aedf21c0b693",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "eval/README.md",
+    "eval/__pycache__/evaluate.cpython-314.pyc",
+    "eval/__pycache__/metrics.cpython-314.pyc",
+    "eval/__pycache__/rubrics.cpython-314.pyc",
+    "eval/evaluate.py",
+    "eval/requirements.txt",
+    "eval/results/result-beneficial-01-maya.json",
+    "eval/results/result-experiment-maya-1.json",
+    "eval/results/result-unhelpful-01-preachy.json",
+    "eval/results/summary-20260331-153100.json",
+    "eval/run_eval.py",
+    "eval/sample_conversations.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ae/df21c0b693/0/metadata.json",
+      "transcript": "/ae/df21c0b693/0/full.jsonl",
+      "context": "/ae/df21c0b693/0/context.md",
+      "content_hash": "/ae/df21c0b693/0/content_hash.txt",
+      "prompt": "/ae/df21c0b693/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 38,
+    "cache_creation_tokens": 31580,
+    "cache_read_tokens": 1870680,
+    "output_tokens": 12063,
+    "api_call_count": 30
+  }
+}
