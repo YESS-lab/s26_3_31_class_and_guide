@@ -3,7 +3,7 @@
   "checkpoint_id": "76d0f7c16498",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "docs/process-guide.md",
     "eval/results/result-beneficial-01-maya.json"
@@ -15,13 +15,20 @@
       "context": "/76/d0f7c16498/0/context.md",
       "content_hash": "/76/d0f7c16498/0/content_hash.txt",
       "prompt": "/76/d0f7c16498/0/prompt.txt"
+    },
+    {
+      "metadata": "/76/d0f7c16498/1/metadata.json",
+      "transcript": "/76/d0f7c16498/1/full.jsonl",
+      "context": "/76/d0f7c16498/1/context.md",
+      "content_hash": "/76/d0f7c16498/1/content_hash.txt",
+      "prompt": "/76/d0f7c16498/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 3,
-    "cache_creation_tokens": 6199,
-    "cache_read_tokens": 11277,
-    "output_tokens": 13,
-    "api_call_count": 1
+    "input_tokens": 6,
+    "cache_creation_tokens": 12400,
+    "cache_read_tokens": 22554,
+    "output_tokens": 19,
+    "api_call_count": 2
   }
 }
