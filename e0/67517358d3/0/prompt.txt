@@ -1,0 +1,13 @@
+echo hello world
+
+---
+
+Unknown skill: plugin
+
+---
+
+can you read pptx files?
+
+---
+
+how about word files
