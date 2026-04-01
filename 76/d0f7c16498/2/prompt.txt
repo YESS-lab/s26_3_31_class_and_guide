@@ -1,0 +1,1 @@
+How do I change vscode terminal history to be infinite
