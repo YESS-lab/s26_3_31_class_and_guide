@@ -19,7 +19,47 @@ The goal is not to build a production system. It is to *learn* — about what yo
  
 ## The Process
  
-### Phase A: Set Up Your Workspace (30 minutes)
+### SUMMARY
+
+#### Prototyping with Claude Code as demonstrated in class
+0. Setup and enable Entire in your repository (as described in previous assignment), i.e. on the command line inside your repository, run entire enable
+
+1. In plan mode, define the agent / skeleton using a prompt and other ideas you have:
+
+```
+Acting as a world class prompt engineer and AI agent engineer, create a comprehensive plan for creating Claude Skills, a set of workflow steps, and interaction examples of how those skills would be used, a set of example data about users that would be in an actual system for an agent like htis, and example user interaction sequences, both positive/beneficial and not helpful. 
+
+Create that for the follow AI agent we want to prototype: An AI agent that facilitates a person or community in reducing their wants for things they do not actually need, as a counter to messages from advertising, wasteful consumerism, etc. Encourages human flourishing by, for example, encouraging self-care, empathy, etc.
+```
+
+2. Follow the plan to make the skills. 
+
+(If you have trouble with doing that, I recommend installing and enabling the superpowers Claude Code plugin, run
+```
+/plugin install superpowers@claude-plugins-official
+```
+In claude code itself i.e. in the Claude Code IDE extension window.
+But then, after you are done following the plan to make the agent prototype (the skills), turn off the plugin by running /plugin , and toggle superpowers plugin off (otherwise the superpowers plugin's skills may run instead of the skills you made for your agent).)
+
+3. Use this prompt to simulate interacting with the agent you are prototyping:
+
+Using only the skills available to you (YOU MUST USE THE SKILLS), use the session-start skill to respond to the following prompt from a user of the AI agent system this project prototypes. YOU MAY ONLY USE THE SKILLS AND MAY NOT READ ANY OTHER FILES TO PREPARE OR DECIDE ON A RESPONSE.
+
+"I am Maya, I am thinking about buying a whole new wardrobe as I have been feeling down lately and sometimes retail therapy helps me.
+
+4. Iterate on the agent prototype, notice things that don't work well, try to make a change and see if they work better. As shown in class on 3-31, you can append the rest of a conversation you had after this to roughly prototype if your changes helped or not:
+
+Using only the skills available to you (YOU MUST USE THE SKILLS), use the session-start skill to respond to the following prompt from a user of the AI agent system this project prototypes. YOU MAY ONLY USE THE SKILLS AND MAY NOT READ ANY OTHER FILES TO PREPARE OR DECIDE ON A RESPONSE.
+
+
+#### Prototyping with Claude Code by just implementing and running an agent in smolagents
+0. Setup and enable Entire in your repository (as described in previous assignment), i.e. on the command line inside your repository, run entire enable
+
+1. As an alternative, you can always instead just prompt claude code to create a smolagents project, or start from an open-source agent codebase online, and then do vibe coding to prototype the agent interactions. If you find the shown in class process confusing or difficult, switching to just vibe coding the agent directly may work better for you. (The nice thing about using Claude Code to prototype like I showed in class, is that you can just throw files etc into the project directory, Claude Code can use Bash commands and do other things if it thinks those are needed as you prototype, whereas when vibe coding in smolagents while running the agent smolagents can't "dynamically at runtime try to use files/documents or tools that you have not explicitly created before you started interacting with your agent.")
+
+### The time guidelines below are to give an idea of 
+
+### Phase A: Set Up Your Workspace (5-10 minutes)
  
 **Step 1: Create a GitHub repository.** Make a new repo with a README that briefly describes what your agent will do. Don't overthink this — one paragraph is fine. You'll refine it as you learn.
  
@@ -27,13 +67,13 @@ The goal is not to build a production system. It is to *learn* — about what yo
  
 **Step 3: Configure permissions.** Claude Code needs permission to read, write, and execute in your repo. In `.claude/settings.json`, whitelist the operations you're comfortable with (Bash, Read, Edit, Write, Glob, Grep). During our demo, we auto-approved low-risk file operations so the workflow stayed fluid — you'll want that too. But always review permission changes to `.claude/` itself, and never blindly approve `rm -rf` or similar destructive commands.
  
-> **Security note:** For prototyping without sensitive data, Claude Code's built-in sandbox is sufficient. If you're working with real user data, run in a Docker container.
+> **Security note:** For prototyping without sensitive data, Claude Code's built-in sandbox is sufficient for a short time period. However, I encourage you to follow the directions from the previous assignment and always use Claude Code from within a Docker container as that is a very high level of security. If you're ever working with real user data, run it in a Docker container and make sure you have anonymized the user data you are working with first.
  
-### Phase B: Design Your Agent (1–2 hours)
+### Phase B: Design Your Agent (~.5 hours)
  
 Think carefully about what parts you can ask for AI assistance with, how you should write your own ideas down after prompting AI then integrate your ideas and new ideas made from combining and inspired/lateral thinking from what you generated with AI.
 
-**Step 4: Write a plain-English description of your agent.** Who does it help? What problem does it address? What does a successful interaction look like? Put this in a design doc (see `docs/superpowers/specs/2026...` for the example that was completed after class). This description is what Claude Code will use to generate skills, so be specific about tone, approach, and boundaries.
+**Step 4: Write a plain-English description of your agent.** Who does it help? What problem does it address? What does a successful interaction look like? Put this in a design doc (see `docs/superpowers/specs/2026...` for the example gone over in class, which was made in the 3-26 after class video). This description is what Claude Code will use to generate skills, so be specific about tone, approach, and boundaries.
  
 In our demo, we described an agent that uses Socratic questioning (not lecturing) to help people examine purchasing impulses, with a warm-coach personality. That specificity — "Socratic, not preachy" — directly shaped the skills Claude generated.
  
@@ -61,7 +101,7 @@ For our agent, Claude generated five skills:
  
 Personas are not optional. Without them you will test with yourself only as the user, and also without AI having context about the user which could make a large difference in the quality of the agent and experience.
  
-### Phase C: Test and Iterate (1–2 hours)
+### Phase C: Test and Iterate (~1 hour)
 Examples here are situated in the example agent from class.
 
 **Step 8: Role-play a test conversation.** Start a new Claude Code session and pretend to be one of your personas. Give the agent context ("I am Maya, a 28-year-old UX designer who stress-shops") and an opening message ("I've been feeling down and think I deserve a whole new wardrobe").
@@ -84,26 +124,49 @@ You should also generate some simulated interactions that don't actually use the
  
 **Step 12: Commit frequently.** Each iteration is a checkpoint. Your git history tells the story of your design process — and lets you revert when Claude Code makes things worse.
  
-### Phase D: Collaborate and Refine (ongoing)
+### Phase D: Collaboratively Prototype/Refine (optional)
  
-**Step 13: Discuss with your team.** The most valuable design insights in our demo came not from the AI, but from the human conversation. After watching the agent interact with Maya, we talked about what felt right and wrong, and someone suggested: *what if the agent connected you with a friend to do something positive together, instead of just examining the want alone?*
+**Step 13: Discuss with peers or others.** The most valuable design insights in our demo came not from the AI, but from the human conversation. After watching the agent interact with Maya, we talked about what felt right and wrong, and someone suggested: *what if the agent connected you with a friend to do something positive together, instead of just examining the want alone?*
  
 That one idea — making it social — was more valuable than any amount of prompt tuning.
  
 > **Our hypothesis: prototyping AI agents works better with multiple people.** You need more than one person interacting around AI and talking about it. One person alone will optimize locally. A group will spot the bigger design opportunities.
  
-**Step 14: Feed ideas back into skills.** We copy-pasted our Zoom discussion transcript directly into Claude Code and asked it to update the flourishing-prompt skill. The collaborative insight ("exercises should involve other people to overcome inertia") became a concrete skill update with new exercises: "Quick Reach-Out," "The Two-Person Version," "Positive Impulse Swap."
+**Step 14: Feed ideas back into skills.** We copy-pasted our Zoom discussion transcript directly into Claude Code and asked it to update the flourishing-prompt skill. The collaborative insight ("exercises should involve other people to overcome inertia") became a concrete skill update to make the flourishing activities be social versions instead of individual ones they had been.
  
-### Phase E: Evaluate (1 hour)
+### Phase E: Evaluate (part of iterating, but can be a separate detailed step)
  
-**Step 15: Record conversations as structured data.** After testing your agent, save conversations in JSON format (see `eval/sample_conversations.json` for the schema). Include conversations that went well, ones that went poorly, and edge cases.
+**Step 15: Record conversations as structured data.** After testing your agent, save conversations as markdown or in JSON format (see `eval/sample_conversations.json` for the schema). Include conversations that went well, ones that went poorly, and edge cases.
  
-**Step 16: Run structural metrics.** Execute `python eval/evaluate.py --structural-only` on your conversation data. This checks quantitative signals: Is your agent monologuing (too many words per turn)? Is it asking questions (question ratio)? Is it acknowledging feelings before giving advice? These numbers make your qualitative observations concrete.
+**Step 16: Run structural metrics.** Execute `python eval/evaluate.py --structural-only` on your conversation data. This checks quantitative signals: Is your agent monologuing (too many words per turn)? Is it asking questions (question ratio)? Is it acknowledging feelings before giving advice? These are just examples of how you can make automated metrics, the included metrics are just examples. Feel free to refine these metrics, and we'll cover such metrics in more detail in future classes.
  
-**Step 17: Run LLM-as-judge evaluation.** Execute `python eval/evaluate.py` for rubric-based scores on empathy, non-judgmental tone, relevance, task completion, and safety. Adapt the rubrics in `eval/rubrics.py` to match your agent's specific goals. If your agent is a "Neurodiversity Support Agent," you'd replace the consumerism-specific rubrics with ones about affirming neurodivergent strengths.
+**Step 17: Run LLM-as-judge evaluation.** Execute `python eval/evaluate.py` for rubric-based scores on empathy, non-judgmental tone, relevance, task completion, and safety. Adapt the rubrics in `eval/rubrics.py` to match your agent's specific goals. For example, iff your agent is a "Neurodiversity Support Agent," you'd replace the consumerism-specific rubrics with ones about affirming neurodivergent strengths, etc. Feel free to refine these metrics/prompts, and we'll cover them in more detail in future classes.
  
 > **Write your bad examples first, then evaluate them.** If your metrics don't flag the bad examples as bad, your metrics need work — not your agent.
+
+**Step 18: Compare the initial conversations to the later conversations done with more refined, improved version of your agent prototype** How did 
  
+
+## Turn in on Brightspace
+
+Turn in answers to these questions from 
+
+1. What problem/opportunity(ies) did you try prototyping an agent for?
+2. Share a link to your github repository and make sure it is shared with greglnelson (Dr. Greg's github account). Make sure the latest and best version of your agent is on the main branch.
+
+3. Describe what you changed about what your agent does and why you made those changes.
+4. Describe what you learned about the design opportunity/problem from doing your prototyping, such as what is hard about it, what are key insights or feature ideas for you to explore next.
+5. Describe 3 to 5 ideas for features or changes to the agent that would help it best address the root of the design opportunity/problem, which you have NOT yet explored.
+
+6. Describe what you learned about designing and prototyping agents in general from this experience. 
+7. Create at least actionable 3-5 takeaways/lessons for designing and prototyping agents in the future. 
+8. Create at least actionable 3-5 "what not to do" takeaways/lessons for designing and prototyping agents in the future. For example, to avoid a certain kind of design mistake, or avoid spending too much time on certain steps in that process.
+
+9. Describe what you learned about using AI (i.e. Claude Code) to assist you in prototyping your agent.
+10. Create at least actionable 3-5 takeaways/lessons for using AI (i.e. Claude Code) to assist you in prototyping and implementing your AI agent for your project.
+11. Create at least actionable 3-5 "what not to do" takeaways/lessons for using AI (i.e. Claude Code) to assist you in prototyping and implementing your AI agent for your project. For example, to avoid using AI in a specific way that was counter-productive, or avoid a certain kind of rabbit hole.
+
+
 ## Tips from Our Experience
  
 1. **Skills should be specific, not generic.** "Ask one question at a time. Wait. Follow the thread." is better than "use Socratic questioning."
