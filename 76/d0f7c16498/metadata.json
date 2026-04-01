@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "76d0f7c16498",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/process-guide.md",
+    "eval/results/result-beneficial-01-maya.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/76/d0f7c16498/0/metadata.json",
+      "transcript": "/76/d0f7c16498/0/full.jsonl",
+      "context": "/76/d0f7c16498/0/context.md",
+      "content_hash": "/76/d0f7c16498/0/content_hash.txt",
+      "prompt": "/76/d0f7c16498/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 3,
+    "cache_creation_tokens": 6199,
+    "cache_read_tokens": 11277,
+    "output_tokens": 13,
+    "api_call_count": 1
+  }
+}

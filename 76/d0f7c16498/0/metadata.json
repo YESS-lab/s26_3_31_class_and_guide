@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "76d0f7c16498",
+  "session_id": "1e9b1740-f4cd-4a91-8e66-72f7511fb9b2",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-01T20:30:10.201424Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/process-guide.md",
+    "eval/results/result-beneficial-01-maya.json"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "42191713ce6a",
+  "token_usage": {
+    "input_tokens": 3,
+    "cache_creation_tokens": 6199,
+    "cache_read_tokens": 11277,
+    "output_tokens": 13,
+    "api_call_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-01T20:30:10.142267Z",
+    "agent_lines": 0,
+    "human_added": 119,
+    "human_modified": 27,
+    "human_removed": 0,
+    "total_committed": 119,
+    "agent_percentage": 0
+  }
+}
