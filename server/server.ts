@@ -3,9 +3,10 @@ import express from "express";
 import cors from "cors";
 import { createServer } from "http";
 import { WebSocketServer, WebSocket } from "ws";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import type { WSClient, IncomingWSMessage } from "./types.js";
+import type { WSClient, IncomingWSMessage, AgentConfig, UploadedFile } from "./types.js";
 import { chatStore } from "./chat-store.js";
 import { Session } from "./session.js";
 
@@ -14,17 +15,103 @@ const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 3001;
 
+// --- Load agent config ---
+const agentConfigPath = path.join(__dirname, "../agent-config.json");
+const agentConfig: AgentConfig = JSON.parse(
+  fs.readFileSync(agentConfigPath, "utf-8"),
+);
+console.log(`[server] Agent: ${agentConfig.name}`);
+
+// --- Ensure uploads directory exists ---
+const UPLOADS_DIR = path.join(__dirname, "../uploads");
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
 // Express app
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from client directory
+// Serve static files from client directory (dev mode)
 app.use("/client", express.static(path.join(__dirname, "../client")));
+
+// Serve built frontend from dist/ (production mode, after vite build)
+const distDir = path.join(__dirname, "../dist");
+if (fs.existsSync(distDir)) {
+  app.use(express.static(distDir));
+}
 
 // Serve index.html at root
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/index.html"));
+  // Prefer built dist/ if it exists, otherwise fall back to client/
+  const distIndex = path.join(distDir, "index.html");
+  const clientIndex = path.join(__dirname, "../client/index.html");
+  if (fs.existsSync(distIndex)) {
+    res.sendFile(distIndex);
+  } else {
+    res.sendFile(clientIndex);
+  }
+});
+
+// --- Agent config endpoint ---
+app.get("/api/config", (_req, res) => {
+  res.json(agentConfig);
+});
+
+// --- File upload endpoint ---
+app.post(
+  "/api/upload/:sessionId",
+  express.raw({ type: "*/*", limit: "10mb" }),
+  (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const originalName = (req.headers["x-filename"] as string) || "upload";
+
+      // Sanitize filename: keep only alphanumeric, dash, underscore, dot
+      const sanitized = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
+
+      // Create session-specific upload directory
+      const sessionDir = path.join(UPLOADS_DIR, sessionId);
+      if (!fs.existsSync(sessionDir)) {
+        fs.mkdirSync(sessionDir, { recursive: true });
+      }
+
+      const storedPath = path.join(sessionDir, sanitized);
+      fs.writeFileSync(storedPath, req.body);
+
+      const uploadedFile: UploadedFile = {
+        originalName,
+        storedPath,
+        uploadedAt: new Date().toISOString(),
+      };
+
+      // Register the file with the session so the agent can reference it
+      const session = sessions.get(sessionId);
+      if (session) {
+        session.addUploadedFile(storedPath);
+      }
+
+      console.log(`[upload] ${originalName} -> ${storedPath}`);
+      res.json(uploadedFile);
+    } catch (error) {
+      console.error("[upload] Error:", error);
+      res.status(500).json({ error: "Upload failed" });
+    }
+  },
+);
+
+// --- List uploaded files for a session ---
+app.get("/api/uploads/:sessionId", (req, res) => {
+  const sessionDir = path.join(UPLOADS_DIR, req.params.sessionId);
+  if (!fs.existsSync(sessionDir)) {
+    return res.json([]);
+  }
+  const files = fs.readdirSync(sessionDir).map((name) => ({
+    originalName: name,
+    storedPath: path.join(sessionDir, name),
+  }));
+  res.json(files);
 });
 
 // Session management
@@ -119,7 +206,13 @@ wss.on("connection", (ws: WSClient) => {
         case "chat": {
           const session = getOrCreateSession(message.chatId);
           session.subscribe(ws);
-          session.sendMessage(message.content);
+
+          // Pass persona data if provided in the message
+          if (message.persona) {
+            session.setPersona(message.persona);
+          }
+
+          session.sendMessage(message.content, message.persona);
           break;
         }
 
