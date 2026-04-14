@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { FileUpload } from "./FileUpload";
 
 interface Message {
   id: string;
@@ -15,6 +16,9 @@ interface ChatWindowProps {
   isConnected: boolean;
   isLoading: boolean;
   onSendMessage: (content: string) => void;
+  welcomeMessage?: string;
+  sessionId: string | null;
+  onFileUploaded: (file: { originalName: string; storedPath: string }) => void;
 }
 
 function ToolUseBlock({ message }: { message: Message }) {
@@ -94,6 +98,9 @@ export function ChatWindow({
   isConnected,
   isLoading,
   onSendMessage,
+  welcomeMessage,
+  sessionId,
+  onFileUploaded,
 }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -112,9 +119,8 @@ export function ChatWindow({
   if (!chatId) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50">
-        <div className="text-center text-gray-500">
-          <p className="text-lg">Welcome to Simple Chat</p>
-          <p className="text-sm mt-2">Select a chat or create a new one to get started</p>
+        <div className="text-center text-gray-500 max-w-md px-4">
+          <p className="text-lg">{welcomeMessage || "Welcome! Select a chat or create a new one to get started."}</p>
         </div>
       </div>
     );
@@ -122,23 +128,20 @@ export function ChatWindow({
 
   return (
     <div className="flex-1 flex flex-col bg-white">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-        <h2 className="font-semibold text-gray-800">Chat</h2>
-        <div className="flex items-center gap-2">
-          {isConnected ? (
-            <span className="text-xs text-green-600">● Connected</span>
-          ) : (
-            <span className="text-xs text-red-600">○ Disconnected</span>
-          )}
-        </div>
+      {/* Connection status bar */}
+      <div className="px-4 py-2 border-b border-gray-200 flex items-center justify-end">
+        {isConnected ? (
+          <span className="text-xs text-green-600">● Connected</span>
+        ) : (
+          <span className="text-xs text-red-600">○ Disconnected</span>
+        )}
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="text-center text-gray-400 mt-8">
-            <p>Start a conversation</p>
+            <p>{welcomeMessage || "Start a conversation"}</p>
           </div>
         ) : (
           <>
@@ -163,6 +166,10 @@ export function ChatWindow({
       {/* Input */}
       <div className="p-4 border-t border-gray-200">
         <form onSubmit={handleSubmit} className="flex gap-2">
+          <FileUpload
+            sessionId={sessionId}
+            onFileUploaded={onFileUploaded}
+          />
           <input
             type="text"
             value={input}

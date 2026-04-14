@@ -2,6 +2,23 @@ import { useState, useEffect, useCallback } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { ChatList } from "./components/ChatList";
 import { ChatWindow } from "./components/ChatWindow";
+import { PersonaEditor } from "./components/PersonaEditor";
+
+interface PersonaField {
+  key: string;
+  label: string;
+  type: "text" | "number" | "textarea";
+  required: boolean;
+  placeholder?: string;
+}
+
+interface AgentConfig {
+  name: string;
+  description: string;
+  welcome_message: string;
+  accent_color: string;
+  persona_fields: PersonaField[];
+}
 
 interface Chat {
   id: string;
@@ -28,6 +45,9 @@ export default function App() {
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [config, setConfig] = useState<AgentConfig | null>(null);
+  const [persona, setPersona] = useState<Record<string, any>>({});
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
 
   // Handle WebSocket messages
   const handleWSMessage = useCallback((message: any) => {
@@ -169,40 +189,94 @@ export default function App() {
 
     setIsLoading(true);
 
-    // Send via WebSocket
+    // Send via WebSocket (include persona data)
     sendJsonMessage({
       type: "chat",
       content,
       chatId: selectedChatId,
+      persona,
     });
   };
 
   // Initial fetch
   useEffect(() => {
     fetchChats();
+
+    // Fetch agent config
+    fetch(`${API_BASE}/config`)
+      .then((res) => res.json())
+      .then((data: AgentConfig) => {
+        setConfig(data);
+        document.title = data.name;
+        // Set CSS custom property for accent color
+        document.documentElement.style.setProperty(
+          "--accent-color",
+          data.accent_color
+        );
+      })
+      .catch((err) => console.error("Failed to fetch config:", err));
   }, []);
+
+  // Handle file uploads
+  const handleFileUploaded = (file: {
+    originalName: string;
+    storedPath: string;
+  }) => {
+    setUploadedFiles((prev) => [...prev, file.storedPath]);
+  };
 
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div className="w-64 shrink-0">
-        <ChatList
-          chats={chats}
-          selectedChatId={selectedChatId}
-          onSelectChat={selectChat}
-          onNewChat={createChat}
-          onDeleteChat={deleteChat}
-        />
+      <div className="w-64 shrink-0 flex flex-col bg-gray-900">
+        <div className="flex-1 overflow-y-auto">
+          <ChatList
+            chats={chats}
+            selectedChatId={selectedChatId}
+            onSelectChat={selectChat}
+            onNewChat={createChat}
+            onDeleteChat={deleteChat}
+            agentName={config?.name}
+          />
+        </div>
+        {config && config.persona_fields.length > 0 && (
+          <PersonaEditor
+            fields={config.persona_fields}
+            persona={persona}
+            onPersonaChange={setPersona}
+            accentColor={config.accent_color}
+          />
+        )}
       </div>
 
       {/* Main chat area */}
-      <ChatWindow
-        chatId={selectedChatId}
-        messages={messages}
-        isConnected={isConnected}
-        isLoading={isLoading}
-        onSendMessage={handleSendMessage}
-      />
+      <div className="flex-1 flex flex-col">
+        {/* Branding header */}
+        {config && (
+          <div
+            className="px-6 py-3 border-b border-gray-200"
+            style={{ borderBottomColor: config.accent_color + "40" }}
+          >
+            <h1
+              className="text-lg font-semibold"
+              style={{ color: config.accent_color }}
+            >
+              {config.name}
+            </h1>
+            <p className="text-sm text-gray-500">{config.description}</p>
+          </div>
+        )}
+        <ChatWindow
+          chatId={selectedChatId}
+          messages={messages}
+          isConnected={isConnected}
+          isLoading={isLoading}
+          onSendMessage={handleSendMessage}
+          welcomeMessage={config?.welcome_message}
+          sessionId={selectedChatId}
+          onFileUploaded={handleFileUploaded}
+        />
+      </div>
     </div>
   );
 }
