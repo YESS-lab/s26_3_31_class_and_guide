@@ -23,11 +23,41 @@ export interface ChatMessage {
   timestamp: string;
 }
 
-// WebSocket incoming messages
+// --- Agent config & persona types ---
+
+export interface PersonaField {
+  key: string;
+  label: string;
+  type: "text" | "number" | "textarea";
+  required: boolean;
+  placeholder?: string;
+}
+
+export interface AgentConfig {
+  name: string;
+  description: string;
+  welcome_message: string;
+  accent_color: string;
+  persona_fields: PersonaField[];
+}
+
+export interface PersonaData {
+  [key: string]: string | number | undefined;
+}
+
+export interface UploadedFile {
+  originalName: string;
+  storedPath: string;
+  uploadedAt: string;
+}
+
+// --- WebSocket incoming messages ---
+
 export interface WSChatMessage {
   type: "chat";
   content: string;
   chatId: string;
+  persona?: PersonaData;
 }
 
 export interface WSSubscribeMessage {
