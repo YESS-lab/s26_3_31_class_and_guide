@@ -1,4 +1,4 @@
-import type { WSClient } from "./types.js";
+import type { WSClient, PersonaData } from "./types.js";
 import { AgentSession } from "./ai-client.js";
 import { chatStore } from "./chat-store.js";
 
@@ -9,9 +9,30 @@ export class Session {
   private agentSession: AgentSession;
   private isListening = false;
 
+  // Per-session persona and uploaded file tracking
+  private persona: PersonaData | undefined;
+  private uploadedFiles: string[] = [];
+
   constructor(chatId: string) {
     this.chatId = chatId;
-    this.agentSession = new AgentSession();
+    this.agentSession = AgentSession.create();
+  }
+
+  /**
+   * Store persona data for this session. Called when the client sends
+   * persona information with a chat message.
+   */
+  setPersona(persona: PersonaData) {
+    this.persona = persona;
+  }
+
+  /**
+   * Register an uploaded file path so the agent knows it can Read it.
+   */
+  addUploadedFile(filePath: string) {
+    if (!this.uploadedFiles.includes(filePath)) {
+      this.uploadedFiles.push(filePath);
+    }
   }
 
   // Start listening to agent output (call once)
@@ -29,8 +50,14 @@ export class Session {
     }
   }
 
-  // Send a user message to the agent
-  sendMessage(content: string) {
+  /**
+   * Send a user message to the agent.
+   *
+   * If persona data is provided directly it takes precedence; otherwise
+   * the stored persona (set via setPersona) is used.  Uploaded file
+   * paths are always forwarded so the agent can reference them with Read.
+   */
+  sendMessage(content: string, persona?: PersonaData) {
     // Store user message
     chatStore.addMessage(this.chatId, {
       role: "user",
@@ -44,8 +71,15 @@ export class Session {
       chatId: this.chatId,
     });
 
-    // Send to agent first (this starts the session if needed)
-    this.agentSession.sendMessage(content);
+    // Use provided persona or fall back to stored one
+    const effectivePersona = persona || this.persona;
+
+    // Send to agent with persona context and file references
+    this.agentSession.sendMessage(
+      content,
+      effectivePersona,
+      this.uploadedFiles.length > 0 ? this.uploadedFiles : undefined,
+    );
 
     // Start listening if not already
     if (!this.isListening) {
