@@ -1,107 +1,124 @@
-import { query } from "@anthropic-ai/claude-agent-sdk";
+import {
+  unstable_v2_createSession,
+  unstable_v2_resumeSession,
+} from "@anthropic-ai/claude-agent-sdk";
+import { loadSkills, buildSystemPrompt } from "./skill-loader.js";
+import path from "path";
+import type { PersonaData } from "./types.js";
 
-const SYSTEM_PROMPT = `You are a helpful AI assistant. You can help users with a wide variety of tasks including:
-- Answering questions
-- Writing and editing text
-- Coding and debugging
-- Analysis and research
-- Creative tasks
+// --- Load skills and build system prompt at module init ---
+const SKILLS_DIR = path.resolve(".claude/skills");
+const skills = loadSkills(SKILLS_DIR);
+const SYSTEM_PROMPT = buildSystemPrompt(skills);
 
-Be concise but thorough in your responses.`;
+console.log(
+  `[ai-client] Loaded ${skills.length} skills: ${skills.map((s) => s.name).join(", ")}`,
+);
 
-type UserMessage = {
-  type: "user";
-  message: { role: "user"; content: string };
-};
+/**
+ * AgentSession wraps the V2 Session API from the Claude Agent SDK.
+ *
+ * Each AgentSession corresponds to one long-lived conversational session
+ * with the agent. It supports:
+ *   - Creating a new session (constructor)
+ *   - Resuming an existing session by ID (static `resume()`)
+ *   - Sending messages with optional persona context and file references
+ *   - Streaming SDK output messages
+ */
+export class AgentSession {
+  private session: any; // SDK session object
 
-// Simple async queue - messages go in via push(), come out via async iteration
-class MessageQueue {
-  private messages: UserMessage[] = [];
-  private waiting: ((msg: UserMessage) => void) | null = null;
-  private closed = false;
-
-  push(content: string) {
-    const msg: UserMessage = {
-      type: "user",
-      message: {
-        role: "user",
-        content,
-      },
-    };
-
-    if (this.waiting) {
-      // Someone is waiting for a message - give it to them
-      this.waiting(msg);
-      this.waiting = null;
-    } else {
-      // No one waiting - queue it
-      this.messages.push(msg);
-    }
+  private constructor(session: any) {
+    this.session = session;
   }
 
-  async *[Symbol.asyncIterator](): AsyncIterableIterator<UserMessage> {
-    while (!this.closed) {
-      if (this.messages.length > 0) {
-        yield this.messages.shift()!;
-      } else {
-        // Wait for next message
-        yield await new Promise<UserMessage>((resolve) => {
-          this.waiting = resolve;
-        });
+  /**
+   * Create a brand-new agent session.
+   */
+  static create(): AgentSession {
+    const session = unstable_v2_createSession({
+      model: "sonnet",
+      systemPrompt: SYSTEM_PROMPT,
+      allowedTools: ["Read"],
+      maxTurns: 50,
+      permissionMode: "bypassPermissions",
+    });
+    return new AgentSession(session);
+  }
+
+  /**
+   * Resume an existing session by its ID.
+   */
+  static resume(sessionId: string): AgentSession {
+    const session = unstable_v2_resumeSession(sessionId, {
+      model: "sonnet",
+      systemPrompt: SYSTEM_PROMPT,
+      allowedTools: ["Read"],
+      maxTurns: 50,
+      permissionMode: "bypassPermissions",
+    });
+    return new AgentSession(session);
+  }
+
+  get sessionId(): string {
+    return this.session.sessionId;
+  }
+
+  /**
+   * Turn persona data into a bracketed context string for prepending to
+   * user messages, e.g.:
+   *   [User context: Maya, 28, UX designer, stress-shops when overwhelmed]
+   */
+  static formatPersonaContext(persona: PersonaData): string {
+    const parts: string[] = [];
+    for (const [, value] of Object.entries(persona)) {
+      if (value !== undefined && value !== null && value !== "") {
+        parts.push(String(value));
       }
     }
+    if (parts.length === 0) return "";
+    return `[User context: ${parts.join(", ")}] `;
   }
 
-  close() {
-    this.closed = true;
-  }
-}
+  /**
+   * Send a user message to the agent.
+   *
+   * Optionally prepend persona context and file references so the agent
+   * has that information available without the user needing to retype it.
+   */
+  async sendMessage(
+    content: string,
+    persona?: PersonaData,
+    uploadedFiles?: string[],
+  ) {
+    let fullMessage = "";
 
-export class AgentSession {
-  private queue = new MessageQueue();
-  private outputIterator: AsyncIterator<any> | null = null;
+    if (persona && Object.values(persona).some((v) => v)) {
+      fullMessage += AgentSession.formatPersonaContext(persona);
+    }
 
-  constructor() {
-    // Start the query immediately with the queue as input
-    // Cast to any - SDK accepts simpler message format at runtime
-    this.outputIterator = query({
-      prompt: this.queue as any,
-      options: {
-        maxTurns: 100,
-        model: "opus",
-        allowedTools: [
-          "Bash",
-          "Read",
-          "Write",
-          "Edit",
-          "Glob",
-          "Grep",
-          "WebSearch",
-          "WebFetch",
-        ],
-        systemPrompt: SYSTEM_PROMPT,
-      },
-    })[Symbol.asyncIterator]();
+    if (uploadedFiles && uploadedFiles.length > 0) {
+      fullMessage += `[Available files: ${uploadedFiles.join(", ")}] `;
+    }
+
+    fullMessage += content;
+
+    await this.session.send(fullMessage);
   }
 
-  // Send a message to the agent
-  sendMessage(content: string) {
-    this.queue.push(content);
-  }
-
-  // Get the output stream
+  /**
+   * Async generator that yields SDK messages from the session output stream.
+   */
   async *getOutputStream() {
-    if (!this.outputIterator) {
-      throw new Error("Session not initialized");
-    }
-    while (true) {
-      const { value, done } = await this.outputIterator.next();
-      if (done) break;
-      yield value;
+    for await (const msg of this.session.stream()) {
+      yield msg;
     }
   }
 
+  /**
+   * Close the underlying SDK session.
+   */
   close() {
-    this.queue.close();
+    this.session.close();
   }
 }
