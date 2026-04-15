@@ -18,7 +18,8 @@
       "Edit(/.claude/skills/want-examination/**)",
       "Edit(/.claude/skills/reframe/**)",
       "Edit(/.claude/skills/flourishing-prompt/**)",
-      "Edit(/.claude/skills/gratitude-inventory/**)"
+      "Edit(/.claude/skills/gratitude-inventory/**)",
+      "Bash(docker info *)"
     ],
     "deny": [
       "Read(./.entire/metadata/**)"
