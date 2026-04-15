@@ -16,4 +16,8 @@ export default defineConfig({
   build: {
     outDir: "../dist",
   },
+  test: {
+    root: ".",
+    include: ["tests/**/*.test.ts"],
+  },
 });
