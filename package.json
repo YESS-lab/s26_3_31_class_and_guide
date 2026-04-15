@@ -13,7 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:docker": "./tests/docker-integration.test.sh",
-    "test:browser": "npx playwright test tests/browser-integration.spec.ts"
+    "test:browser": "./tests/run-browser-tests.sh"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.28",
