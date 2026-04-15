@@ -52,16 +52,43 @@ See [docs/CUSTOMIZE.md](docs/CUSTOMIZE.md) for details.
 
 ## Deploy to Fly.io
 
-### Prerequisites
+### 1. Create a Fly.io Account
 
-- [Fly.io account](https://fly.io/app/sign-up) (sign up with GitHub)
-- [Fly CLI installed](https://fly.io/docs/flyctl/install/)
-- Anthropic API key from https://console.anthropic.com/settings/keys
+1. Go to https://fly.io/app/sign-up
+2. Click **Sign up with GitHub** (easiest)
+3. You'll need to add a credit card for verification — a small agent costs ~$3-5/month when running, $0 when auto-stopped
 
-### Deploy
+### 2. Get an Anthropic API Key
+
+1. Go to https://console.anthropic.com/settings/keys
+2. Create a new key and copy it
+
+### 3. Install the Fly CLI
+
+**macOS (Homebrew):**
+```bash
+brew install flyctl
+```
+
+**macOS/Linux (curl):**
+```bash
+curl -L https://fly.io/install.sh | sh
+```
+
+**Windows (PowerShell):**
+```powershell
+powershell -Command "iwr https://fly.io/install.ps1 -useb | iex"
+```
+
+Verify it works:
+```bash
+fly version
+```
+
+### 4. Deploy
 
 ```bash
-# Log in to Fly.io
+# Log in to Fly.io (opens browser)
 fly auth login
 
 # Create the app (first time only)
