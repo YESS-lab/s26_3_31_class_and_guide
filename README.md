@@ -52,16 +52,18 @@ See [docs/CUSTOMIZE.md](docs/CUSTOMIZE.md) for details.
 
 ## Deploy to Railway
 
+Each person gets their own deployed instance with their own URL and isolated data. Railway detects the Dockerfile and builds automatically.
+
 ### 1. Create a Railway Account
 
 1. Go to https://railway.com
 2. Click **Login** then **Login with GitHub**
-3. Railway has a free trial tier. After that, the Hobby plan is $5/month with $5 of included usage — more than enough for a class project.
+3. Railway has a free trial tier. After that, the Hobby plan is $5/month with $5 of included usage.
 
 ### 2. Get an Anthropic API Key
 
 1. Go to https://console.anthropic.com/settings/keys
-2. Create a new key and copy it
+2. Create a new key and copy it (starts with `sk-ant-`)
 
 ### 3. Install the Railway CLI
 
@@ -80,35 +82,59 @@ railway --help
 railway login
 ```
 
-This opens your browser. Log in with the same GitHub account.
+This opens your browser. Log in with the same GitHub account you used to sign up.
 
-### 5. Create a Project and Deploy
+### 5. Create a Project
 
 ```bash
-# Create a new Railway project
 railway init
+```
 
-# Link this directory to the project
-railway link
+Give your project a name when prompted (e.g., "rocky-agent").
 
-# Set your API key as an environment variable
-railway vars set ANTHROPIC_API_KEY=sk-ant-your-key-here
+### 6. Deploy
 
-# Deploy
+This is the key step. `railway up` uploads your code, detects the Dockerfile, builds it, and creates a service:
+
+```bash
 railway up
 ```
 
-### 6. Get Your URL
+First deploy takes 2-3 minutes. Wait for it to finish.
 
-After deploy completes, generate a public domain:
+### 7. Link to the Service
+
+After the deploy creates your service, link your local directory to it:
+
+```bash
+railway service
+```
+
+Select the service that was just created.
+
+### 8. Set Your API Key
+
+Now that a service is linked, set the Anthropic API key:
+
+```bash
+railway vars set ANTHROPIC_API_KEY=sk-ant-your-key-here
+```
+
+This triggers a redeploy automatically.
+
+### 9. Get Your Public URL
+
+Generate a public domain for your app:
 
 ```bash
 railway domain
 ```
 
-Your agent is live at the URL Railway gives you (something like `https://your-project.up.railway.app`).
+Your agent is live at the URL Railway gives you (something like `https://rocky-agent-production.up.railway.app`). Share this link with anyone.
 
-### Update After Changes
+### Updating After Changes
+
+Edit your skills or config, then:
 
 ```bash
 railway up
@@ -119,7 +145,7 @@ Or connect your GitHub repo in the Railway dashboard for automatic deploys on pu
 ### Useful Commands
 
 ```bash
-railway logs          # Server output
+railway logs          # Server output (useful for debugging)
 railway status        # Deployment status
 railway vars          # View environment variables
 railway down          # Remove most recent deployment
@@ -130,27 +156,46 @@ railway delete        # Delete the project entirely
 
 | Problem | Fix |
 |---------|-----|
+| `No service linked` | Run `railway service` and select your service. |
+| `No services found` | Run `railway up` first to create the initial deployment. |
 | App won't start | `railway logs` — usually missing API key. Run `railway vars set` again. |
 | Build fails | Check that `npm run build` works locally first. |
-| Generic assistant (not Rocky) | Check `.claude/skills/` exists and isn't in `.gitignore`. Check `railway logs` for skill loading. |
-| No streaming | Check `includePartialMessages: true` in `server/ai-client.ts`. |
+| Agent acts like generic assistant | Check `.claude/skills/` exists and isn't in `.gitignore`. |
 | No public URL | Run `railway domain` to generate one. |
+| WebSocket won't connect | The app handles ws/wss automatically. Check `railway logs` for errors. |
 
-See [docs/DEPLOY.md](docs/DEPLOY.md) for more details.
+## Deploy with Docker (Local)
+
+If you prefer to run locally with Docker instead of Railway:
+
+```bash
+# Build the image
+docker build -t rocky-agent .
+
+# Run it (replace with your actual API key)
+docker run -p 3001:3001 -e ANTHROPIC_API_KEY=sk-ant-your-key-here rocky-agent
+```
+
+Open http://localhost:3001
+
+To stop: `docker stop $(docker ps -q --filter ancestor=rocky-agent)`
 
 ## Architecture
 
 ```
-Browser  ←→  Express + WebSocket  ←→  Claude Agent SDK (query())
-                                         ↓
-                                    Reads .claude/skills/
-                                    Reads CLAUDE.md
-                                    Reads .claude/settings.json
+Browser  <-->  Express + WebSocket  <-->  Claude Agent SDK (query())
+                                            |
+                                       Reads .claude/skills/
+                                       Reads CLAUDE.md
+                                       Reads .claude/settings.json
 ```
 
 The SDK spawns Claude Code as a subprocess. Claude Code discovers skills and CLAUDE.md from the project directory. The server bridges WebSocket clients to the SDK via a `MessageQueue` for multi-turn conversations.
 
+Each deployed instance is independent — its own container, its own data, its own URL. No shared state between users.
+
 ## Cost
 
 - Railway: Hobby plan $5/month with $5 included usage. Free trial available.
-- Anthropic API: per-conversation token usage
+- Docker: Free (runs on your machine).
+- Anthropic API: per-conversation token usage.
