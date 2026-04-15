@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "7f250f38e103",
+  "strategy": "manual-commit",
+  "branch": "feature/agent-sdk-deployment",
+  "checkpoints_count": 19,
+  "files_touched": [
+    "CLAUDE.md",
+    "docs/superpowers/plans/2026-04-14-agent-sdk-deployment.md",
+    "docs/superpowers/specs/2026-04-14-agent-sdk-deployment-design.md",
+    "server/ai-client.ts",
+    "server/skill-loader.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/7f/250f38e103/0/metadata.json",
+      "transcript": "/7f/250f38e103/0/full.jsonl",
+      "context": "/7f/250f38e103/0/context.md",
+      "content_hash": "/7f/250f38e103/0/content_hash.txt",
+      "prompt": "/7f/250f38e103/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1797,
+    "cache_creation_tokens": 307581,
+    "cache_read_tokens": 10960296,
+    "output_tokens": 62972,
+    "api_call_count": 107
+  }
+}
