@@ -127,7 +127,7 @@ export function ChatWindow({
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white">
+    <div className="flex-1 flex flex-col bg-white min-h-0">
       {/* Connection status bar */}
       <div className="px-4 py-2 border-b border-gray-200 flex items-center justify-end">
         {isConnected ? (
