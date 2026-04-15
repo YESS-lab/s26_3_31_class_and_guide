@@ -19,7 +19,9 @@ RUN npm run build
 RUN mkdir -p uploads
 
 # Initialize a git repo (Claude Code expects to run inside a git repo)
-RUN git init && git add -A && git commit -m "docker build" --allow-empty
+RUN git config --global user.email "rocky-bot@erid.net" && \
+    git config --global user.name "Rocky Bot" && \
+    git init && git add -A && git commit -m "docker build"
 
 # Expose port
 ENV PORT=3001
