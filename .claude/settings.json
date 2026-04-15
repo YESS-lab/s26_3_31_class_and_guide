@@ -12,6 +12,8 @@
       "Task",
       "WebFetch",
       "WebSearch",
+      "Edit(/.claude/skills/.*)",
+      "Edit(/.claude/skills/**)",
       "Edit(/.claude/skills/session-start/**)",
       "Edit(/.claude/skills/want-examination/**)",
       "Edit(/.claude/skills/reframe/**)",
