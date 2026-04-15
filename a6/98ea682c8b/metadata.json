@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "a698ea682c8b",
+  "strategy": "manual-commit",
+  "branch": "rocky-hail-mary",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "Dockerfile"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a6/98ea682c8b/0/metadata.json",
+      "transcript": "/a6/98ea682c8b/0/full.jsonl",
+      "context": "/a6/98ea682c8b/0/context.md",
+      "content_hash": "/a6/98ea682c8b/0/content_hash.txt",
+      "prompt": "/a6/98ea682c8b/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1981,
+    "cache_creation_tokens": 1028726,
+    "cache_read_tokens": 41206224,
+    "output_tokens": 104781,
+    "api_call_count": 249
+  }
+}

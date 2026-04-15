@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "a698ea682c8b",
+  "session_id": "767ce74c-aa96-4526-88d7-2411f4000ccc",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-15T18:07:32.078982Z",
+  "branch": "rocky-hail-mary",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "Dockerfile"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "eb3e4450face",
+  "token_usage": {
+    "input_tokens": 1981,
+    "cache_creation_tokens": 1028726,
+    "cache_read_tokens": 41206224,
+    "output_tokens": 104781,
+    "api_call_count": 249
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-15T18:07:31.235565Z",
+    "agent_lines": 4,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 4,
+    "agent_percentage": 100
+  }
+}
