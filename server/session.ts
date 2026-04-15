@@ -7,7 +7,6 @@ export class Session {
   public readonly chatId: string;
   private subscribers: Set<WSClient> = new Set();
   private agentSession: AgentSession;
-  private isListening = false;
 
   // Per-session persona and uploaded file tracking
   private persona: PersonaData | undefined;
@@ -35,27 +34,11 @@ export class Session {
     }
   }
 
-  // Start listening to agent output (call once)
-  private async startListening() {
-    if (this.isListening) return;
-    this.isListening = true;
-
-    try {
-      for await (const message of this.agentSession.getOutputStream()) {
-        this.handleSDKMessage(message);
-      }
-    } catch (error) {
-      console.error(`Error in session ${this.chatId}:`, error);
-      this.broadcastError((error as Error).message);
-    }
-  }
-
   /**
-   * Send a user message to the agent.
+   * Send a user message to the agent and stream the response.
    *
-   * If persona data is provided directly it takes precedence; otherwise
-   * the stored persona (set via setPersona) is used.  Uploaded file
-   * paths are always forwarded so the agent can reference them with Read.
+   * V2 API: each send() + stream() cycle handles one turn.
+   * We iterate stream() per message so multi-turn works correctly.
    */
   sendMessage(content: string, persona?: PersonaData) {
     // Store user message
@@ -74,16 +57,22 @@ export class Session {
     // Use provided persona or fall back to stored one
     const effectivePersona = persona || this.persona;
 
-    // Send to agent with persona context and file references
-    this.agentSession.sendMessage(
-      content,
-      effectivePersona,
-      this.uploadedFiles.length > 0 ? this.uploadedFiles : undefined,
-    );
+    // Send and stream response for this turn
+    this.streamTurn(content, effectivePersona);
+  }
 
-    // Start listening if not already
-    if (!this.isListening) {
-      this.startListening();
+  private async streamTurn(content: string, persona?: PersonaData) {
+    try {
+      for await (const message of this.agentSession.sendAndStream(
+        content,
+        persona,
+        this.uploadedFiles.length > 0 ? this.uploadedFiles : undefined,
+      )) {
+        this.handleSDKMessage(message);
+      }
+    } catch (error) {
+      console.error(`Error in session ${this.chatId}:`, error);
+      this.broadcastError((error as Error).message);
     }
   }
 

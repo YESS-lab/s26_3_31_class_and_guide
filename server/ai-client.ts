@@ -51,7 +51,12 @@ export class AgentSession {
     return `[User context: ${parts.join(", ")}] `;
   }
 
-  async sendMessage(
+  /**
+   * Send a message and yield the response stream for this turn.
+   * V2 API requires calling stream() after each send() — each stream()
+   * yields messages for that turn only, then completes.
+   */
+  async *sendAndStream(
     content: string,
     persona?: PersonaData,
     uploadedFiles?: string[],
@@ -68,9 +73,7 @@ export class AgentSession {
 
     fullMessage += content;
     await this.session.send(fullMessage);
-  }
 
-  async *getOutputStream() {
     for await (const msg of this.session.stream()) {
       yield msg;
     }
