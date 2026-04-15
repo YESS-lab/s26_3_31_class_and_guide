@@ -225,7 +225,7 @@ UPLOAD_CHAT_ID=$(echo "$UPLOAD_CHAT" | python3 -c "import sys,json; print(json.l
 UPLOAD_RESULT=$(curl -s -X POST "http://localhost:$PORT/api/upload/$UPLOAD_CHAT_ID" \
   -H "Content-Type: text/plain" \
   -H "X-Filename: test-notes.txt" \
-  --data "These are my test notes about wanting to buy a new phone.")
+  --data "These are my test notes about wanting to buy a new phone. Secret is baryometrics")
 
 if echo "$UPLOAD_RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['originalName'] == 'test-notes.txt'" 2>/dev/null; then
   pass "File upload succeeds"
@@ -251,52 +251,61 @@ echo "=== Test: Agent Response ==="
 if [ "$HAS_API_KEY" = false ]; then
   skip "Agent responds to message" "no API key"
   skip "Agent responds in character" "no API key"
+  skip "5-turn conversation" "no API key"
+  skip "File upload secret retrieval" "no API key"
 else
-  # Create a chat and send a message via WebSocket
-  # We use a simple Node.js script since curl can't do WebSocket
+
+  # --- Helper: send a message via WebSocket and capture response ---
+  # Creates a Node.js script that connects, subscribes, sends, and waits for response.
+  # Usage: send_and_receive CHAT_ID "user message" [timeout_ms]
+  # Outputs the agent's full response text to stdout.
+  send_and_receive() {
+    local CHAT_ID="$1"
+    local MESSAGE="$2"
+    local TIMEOUT_MS="${3:-120000}"
+
+    node -e "
+      const WebSocket = require('ws');
+      const ws = new WebSocket('ws://localhost:$PORT/ws');
+      let response = '';
+      const timeout = setTimeout(() => { console.log(response || 'TIMEOUT'); process.exit(0); }, $TIMEOUT_MS);
+      ws.on('open', () => {
+        ws.send(JSON.stringify({ type: 'subscribe', chatId: '$CHAT_ID' }));
+        setTimeout(() => {
+          ws.send(JSON.stringify({ type: 'chat', chatId: '$CHAT_ID', content: $(printf '%s' "$MESSAGE" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))") }));
+        }, 500);
+      });
+      ws.on('message', (data) => {
+        const msg = JSON.parse(data.toString());
+        if (msg.type === 'assistant_delta') response += msg.content;
+        if (msg.type === 'assistant_message_end' || msg.type === 'assistant_message') {
+          if (!response && msg.content) response = msg.content;
+        }
+        if (msg.type === 'result' || msg.type === 'error') {
+          if (msg.type === 'error') response = 'ERROR: ' + msg.error;
+          clearTimeout(timeout);
+          console.log(response);
+          process.exit(0);
+        }
+      });
+    " 2>/dev/null
+  }
+
+  # --- Test 8a: Single message + character check ---
   AGENT_CHAT=$(curl -s -X POST "http://localhost:$PORT/api/chats" -H "Content-Type: application/json")
   AGENT_CHAT_ID=$(echo "$AGENT_CHAT" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])" 2>/dev/null)
 
-  # Use Node.js with the ws package (available in the project) to test WebSocket
-  RESPONSE=$(node -e "
-    const WebSocket = require('ws');
-    const ws = new WebSocket('ws://localhost:$PORT/ws');
-    let response = '';
-    let done = false;
-    const timeout = setTimeout(() => { console.log(response || 'TIMEOUT'); process.exit(0); }, 120000);
-    ws.on('open', () => {
-      ws.send(JSON.stringify({ type: 'subscribe', chatId: '$AGENT_CHAT_ID' }));
-      setTimeout(() => {
-        ws.send(JSON.stringify({ type: 'chat', chatId: '$AGENT_CHAT_ID', content: 'I have been feeling stressed and thinking about buying a whole new wardrobe to feel better' }));
-      }, 500);
-    });
-    ws.on('message', (data) => {
-      const msg = JSON.parse(data.toString());
-      if (msg.type === 'assistant_delta') {
-        response += msg.content;
-      }
-      if (msg.type === 'assistant_message_end' || msg.type === 'assistant_message') {
-        if (!response && msg.content) response = msg.content;
-        done = true;
-      }
-      if (msg.type === 'result' || msg.type === 'error') {
-        if (msg.type === 'error') response = 'ERROR: ' + msg.error;
-        clearTimeout(timeout);
-        console.log(response);
-        process.exit(0);
-      }
-    });
-  " 2>/dev/null)
+  RESPONSE=$(send_and_receive "$AGENT_CHAT_ID" "I have been feeling stressed and thinking about buying a whole new wardrobe to feel better")
 
   if [ -n "$RESPONSE" ] && [ "$RESPONSE" != "TIMEOUT" ] && ! echo "$RESPONSE" | grep -q "^ERROR:"; then
     pass "Agent responds to message (${#RESPONSE} chars)"
+    echo -e "    ${YELLOW}Rocky:${NC} ${RESPONSE:0:300}"
 
-    # Check if response sounds like Rocky (broken English, questions, short)
+    # Check if response sounds like Rocky
     RESPONSE_LOWER=$(echo "$RESPONSE" | tr '[:upper:]' '[:lower:]')
     ROCKY_SIGNALS=0
     echo "$RESPONSE_LOWER" | grep -qi "question\|rocky\|understand\|amaze\|erid" && ROCKY_SIGNALS=$((ROCKY_SIGNALS + 1)) || true
-    echo "$RESPONSE_LOWER" | grep -qi "stress\|feel\|hard\|overwhelm" && ROCKY_SIGNALS=$((ROCKY_SIGNALS + 1)) || true
-    # Check response is short (Rocky should be concise)
+    echo "$RESPONSE_LOWER" | grep -qi "stress\|feel\|hard\|overwhelm\|wardrobe\|cloth\|buy" && ROCKY_SIGNALS=$((ROCKY_SIGNALS + 1)) || true
     SENTENCE_COUNT=$(echo "$RESPONSE" | grep -o '\.' | wc -l | tr -d ' ')
     [ "$SENTENCE_COUNT" -le 5 ] && ROCKY_SIGNALS=$((ROCKY_SIGNALS + 1)) || true
 
@@ -314,6 +323,115 @@ else
   fi
 
   curl -s -X DELETE "http://localhost:$PORT/api/chats/$AGENT_CHAT_ID" > /dev/null 2>&1
+
+  # --- Test 8b: 5-turn conversation ---
+  echo ""
+  echo "=== Test: 5-Turn Conversation ==="
+
+  CONV_CHAT=$(curl -s -X POST "http://localhost:$PORT/api/chats" -H "Content-Type: application/json")
+  CONV_CHAT_ID=$(echo "$CONV_CHAT" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])" 2>/dev/null)
+
+  TURN_MESSAGES=(
+    "Hi Rocky, I keep seeing ads for a new phone and I think I need it"
+    "Well everyone at work has the latest model and I feel left out"
+    "I guess I want to feel like I belong and am not behind"
+    "Actually my current phone works fine, I just feel pressure"
+    "You're right, thanks for helping me think about this"
+  )
+
+  CONV_FAILURES=0
+  for i in $(seq 0 4); do
+    TURN_NUM=$((i + 1))
+    USER_MSG="${TURN_MESSAGES[$i]}"
+    echo "  Turn $TURN_NUM user: ${USER_MSG:0:60}..."
+
+    TURN_RESPONSE=$(send_and_receive "$CONV_CHAT_ID" "$USER_MSG")
+
+    if [ -n "$TURN_RESPONSE" ] && [ "$TURN_RESPONSE" != "TIMEOUT" ] && ! echo "$TURN_RESPONSE" | grep -q "^ERROR:"; then
+      echo -e "    ${YELLOW}Rocky:${NC} ${TURN_RESPONSE:0:200}"
+      pass "Turn $TURN_NUM: Rocky responds (${#TURN_RESPONSE} chars)"
+    elif echo "$TURN_RESPONSE" | grep -q "^ERROR:"; then
+      fail "Turn $TURN_NUM" "$TURN_RESPONSE"
+      CONV_FAILURES=$((CONV_FAILURES + 1))
+      # Don't continue if we get an error — likely a session issue
+      break
+    else
+      fail "Turn $TURN_NUM" "timeout or empty response"
+      CONV_FAILURES=$((CONV_FAILURES + 1))
+      echo "  Container logs:"
+      docker logs "$CONTAINER_NAME" 2>&1 | tail -5
+      break
+    fi
+  done
+
+  if [ "$CONV_FAILURES" -eq 0 ]; then
+    pass "5-turn conversation completed successfully"
+  fi
+
+  curl -s -X DELETE "http://localhost:$PORT/api/chats/$CONV_CHAT_ID" > /dev/null 2>&1
+
+  # --- Test 8c: File upload + secret retrieval in 5 turns ---
+  echo ""
+  echo "=== Test: File Upload + Secret Retrieval (5 turns) ==="
+
+  SECRET_CHAT=$(curl -s -X POST "http://localhost:$PORT/api/chats" -H "Content-Type: application/json")
+  SECRET_CHAT_ID=$(echo "$SECRET_CHAT" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])" 2>/dev/null)
+
+  # Upload a file with a secret
+  curl -s -X POST "http://localhost:$PORT/api/upload/$SECRET_CHAT_ID" \
+    -H "Content-Type: text/plain" \
+    -H "X-Filename: my-notes.txt" \
+    --data "My personal notes:
+I have been thinking about what matters to me.
+The secret code is: bananagrams
+I want to focus on experiences not things." > /dev/null 2>&1
+
+  SECRET_MESSAGES=(
+    "Hi Rocky, I uploaded a file with some personal notes"
+    "Can you read the file I uploaded? It has my thoughts"
+    "What did you find in there?"
+    "Is there anything specific like a code or secret in the file?"
+    "What is the secret in the file?"
+  )
+
+  FOUND_SECRET=false
+  SECRET_FAILURES=0
+  for i in $(seq 0 4); do
+    TURN_NUM=$((i + 1))
+    USER_MSG="${SECRET_MESSAGES[$i]}"
+    echo "  Turn $TURN_NUM user: ${USER_MSG:0:60}..."
+
+    SECRET_RESPONSE=$(send_and_receive "$SECRET_CHAT_ID" "$USER_MSG")
+
+    if [ -n "$SECRET_RESPONSE" ] && [ "$SECRET_RESPONSE" != "TIMEOUT" ] && ! echo "$SECRET_RESPONSE" | grep -q "^ERROR:"; then
+      echo -e "    ${YELLOW}Rocky:${NC} ${SECRET_RESPONSE:0:300}"
+      pass "Secret turn $TURN_NUM: Rocky responds (${#SECRET_RESPONSE} chars)"
+
+      # Check if Rocky mentions the secret
+      if echo "$SECRET_RESPONSE" | grep -qi "bananagrams"; then
+        FOUND_SECRET=true
+        echo -e "    ${GREEN}^^^ Secret 'bananagrams' found in response!${NC}"
+      fi
+    elif echo "$SECRET_RESPONSE" | grep -q "^ERROR:"; then
+      fail "Secret turn $TURN_NUM" "$SECRET_RESPONSE"
+      SECRET_FAILURES=$((SECRET_FAILURES + 1))
+      break
+    else
+      fail "Secret turn $TURN_NUM" "timeout or empty response"
+      SECRET_FAILURES=$((SECRET_FAILURES + 1))
+      echo "  Container logs:"
+      docker logs "$CONTAINER_NAME" 2>&1 | tail -5
+      break
+    fi
+  done
+
+  if [ "$FOUND_SECRET" = true ]; then
+    pass "Agent found secret 'bananagrams' from uploaded file"
+  else
+    fail "Agent found secret" "never mentioned 'bananagrams' across 5 turns"
+  fi
+
+  curl -s -X DELETE "http://localhost:$PORT/api/chats/$SECRET_CHAT_ID" > /dev/null 2>&1
 fi
 
 # Summary
