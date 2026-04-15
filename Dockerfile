@@ -1,7 +1,6 @@
 FROM node:22
 
-# Install git (Claude Code requires it) and Claude Code CLI
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# Install Claude Code CLI (the Agent SDK spawns it as a subprocess)
 RUN npm install -g @anthropic-ai/claude-code
 
 WORKDIR /app
