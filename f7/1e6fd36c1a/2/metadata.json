@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "f71e6fd36c1a",
+  "session_id": "78fcb321-6e52-4661-a075-3916c85892b8",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-15T05:53:36.118213Z",
+  "branch": "rocky-hail-mary",
+  "checkpoints_count": 0,
+  "files_touched": [
+    ".claude/skills/session-start/SKILL.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "ba218323b8b8",
+  "checkpoint_transcript_start": 120,
+  "transcript_lines_at_start": 120,
+  "token_usage": {
+    "input_tokens": 3,
+    "cache_creation_tokens": 645,
+    "cache_read_tokens": 73253,
+    "output_tokens": 164,
+    "api_call_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-15T05:53:35.927955Z",
+    "agent_lines": 63,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 63,
+    "agent_percentage": 100
+  }
+}
