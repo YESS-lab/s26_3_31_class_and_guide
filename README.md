@@ -50,84 +50,93 @@ Edit two things:
 
 See [docs/CUSTOMIZE.md](docs/CUSTOMIZE.md) for details.
 
-## Deploy to Fly.io
+## Deploy to Railway
 
-### 1. Create a Fly.io Account
+### 1. Create a Railway Account
 
-1. Go to https://fly.io/app/sign-up
-2. Click **Sign up with GitHub** (easiest)
-3. You'll need to add a credit card for verification — a small agent costs ~$3-5/month when running, $0 when auto-stopped
+1. Go to https://railway.com
+2. Click **Login** then **Login with GitHub**
+3. Railway has a free trial tier. After that, the Hobby plan is $5/month with $5 of included usage — more than enough for a class project.
 
 ### 2. Get an Anthropic API Key
 
 1. Go to https://console.anthropic.com/settings/keys
 2. Create a new key and copy it
 
-### 3. Install the Fly CLI
+### 3. Install the Railway CLI
 
-**macOS (Homebrew):**
 ```bash
-brew install flyctl
-```
-
-**macOS/Linux (curl):**
-```bash
-curl -L https://fly.io/install.sh | sh
-```
-
-**Windows (PowerShell):**
-```powershell
-powershell -Command "iwr https://fly.io/install.ps1 -useb | iex"
+npm install -g @railway/cli
 ```
 
 Verify it works:
 ```bash
-fly version
+railway --help
 ```
 
-### 4. Deploy
+### 4. Log In
 
 ```bash
-# Log in to Fly.io (opens browser)
-fly auth login
-
-# Create the app (first time only)
-fly launch --no-deploy
-
-# Set your API key as a secret
-fly secrets set ANTHROPIC_API_KEY=sk-ant-your-key-here
-
-# Deploy
-fly deploy
+railway login
 ```
 
-Your agent is live at `https://your-app-name.fly.dev`.
+This opens your browser. Log in with the same GitHub account.
+
+### 5. Create a Project and Deploy
+
+```bash
+# Create a new Railway project
+railway init
+
+# Link this directory to the project
+railway link
+
+# Set your API key as an environment variable
+railway vars set ANTHROPIC_API_KEY=sk-ant-your-key-here
+
+# Deploy
+railway up
+```
+
+### 6. Get Your URL
+
+After deploy completes, generate a public domain:
+
+```bash
+railway domain
+```
+
+Your agent is live at the URL Railway gives you (something like `https://your-project.up.railway.app`).
 
 ### Update After Changes
 
 ```bash
-fly deploy
+railway up
 ```
+
+Or connect your GitHub repo in the Railway dashboard for automatic deploys on push.
 
 ### Useful Commands
 
 ```bash
-fly logs            # Server output
-fly status          # Is it running?
-fly ssh console     # Shell into the machine
-fly apps destroy your-app-name   # Delete entirely
+railway logs          # Server output
+railway status        # Deployment status
+railway vars          # View environment variables
+railway down          # Remove most recent deployment
+railway delete        # Delete the project entirely
 ```
 
 ### Troubleshooting
 
 | Problem | Fix |
 |---------|-----|
-| App won't start | `fly logs` — usually missing API key. Run `fly secrets set` again. |
-| "Cannot connect" | App auto-stopped. Refresh — it restarts on traffic (~10s). |
-| Generic assistant (not Rocky) | Check `.claude/skills/` exists and isn't in `.gitignore`. Check `fly logs` for skill loading. |
+| App won't start | `railway logs` — usually missing API key. Run `railway vars set` again. |
+| Build fails | Check that `npm run build` works locally first. |
+| Generic assistant (not Rocky) | Check `.claude/skills/` exists and isn't in `.gitignore`. Check `railway logs` for skill loading. |
 | No streaming | Check `includePartialMessages: true` in `server/ai-client.ts`. |
+| No public URL | Run `railway domain` to generate one. |
 
-See [docs/DEPLOY.md](docs/DEPLOY.md) for the full step-by-step guide.
+See [docs/DEPLOY.md](docs/DEPLOY.md) for more details.
 
 ## Architecture
 
@@ -143,5 +152,5 @@ The SDK spawns Claude Code as a subprocess. Claude Code discovers skills and CLA
 
 ## Cost
 
-- Fly.io: ~$3-5/month when running, $0 when auto-stopped
+- Railway: Hobby plan $5/month with $5 included usage. Free trial available.
 - Anthropic API: per-conversation token usage
