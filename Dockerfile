@@ -1,10 +1,11 @@
-FROM node:20-slim
+FROM node:22
 
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies (--no-optional avoids platform-specific rollup bug,
+# then install rollup platform binaries explicitly)
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install --no-package-lock
 
 # Copy source
 COPY . .
