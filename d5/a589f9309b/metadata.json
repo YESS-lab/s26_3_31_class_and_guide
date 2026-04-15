@@ -3,7 +3,7 @@
   "checkpoint_id": "d5a589f9309b",
   "strategy": "manual-commit",
   "branch": "rocky-hail-mary",
-  "checkpoints_count": 11,
+  "checkpoints_count": 12,
   "files_touched": [
     ".claude/settings.json",
     ".claude/skills/flourishing-prompt/SKILL.md",
@@ -20,13 +20,20 @@
       "context": "/d5/a589f9309b/0/context.md",
       "content_hash": "/d5/a589f9309b/0/content_hash.txt",
       "prompt": "/d5/a589f9309b/0/prompt.txt"
+    },
+    {
+      "metadata": "/d5/a589f9309b/1/metadata.json",
+      "transcript": "/d5/a589f9309b/1/full.jsonl",
+      "context": "/d5/a589f9309b/1/context.md",
+      "content_hash": "/d5/a589f9309b/1/content_hash.txt",
+      "prompt": "/d5/a589f9309b/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 28,
-    "cache_creation_tokens": 20141,
-    "cache_read_tokens": 247043,
-    "output_tokens": 435,
-    "api_call_count": 14
+    "input_tokens": 1005,
+    "cache_creation_tokens": 51472,
+    "cache_read_tokens": 1674238,
+    "output_tokens": 10534,
+    "api_call_count": 30
   }
 }

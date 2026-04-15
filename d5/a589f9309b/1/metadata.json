@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "d5a589f9309b",
+  "session_id": "78fcb321-6e52-4661-a075-3916c85892b8",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-15T06:09:04.935222Z",
+  "branch": "rocky-hail-mary",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".claude/settings.json",
+    ".claude/skills/flourishing-prompt/SKILL.md",
+    ".claude/skills/gratitude-inventory/SKILL.md",
+    ".claude/skills/reframe/SKILL.md",
+    ".claude/skills/session-start/SKILL.md",
+    ".claude/skills/want-examination/SKILL.md",
+    "CLAUDE.md"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "ba218323b8b8",
+  "checkpoint_transcript_start": 131,
+  "transcript_lines_at_start": 131,
+  "token_usage": {
+    "input_tokens": 977,
+    "cache_creation_tokens": 31331,
+    "cache_read_tokens": 1427195,
+    "output_tokens": 10099,
+    "api_call_count": 16
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-15T06:09:04.650399Z",
+    "agent_lines": 258,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 258,
+    "agent_percentage": 100
+  }
+}
