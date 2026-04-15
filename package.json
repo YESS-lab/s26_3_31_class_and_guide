@@ -11,7 +11,8 @@
     "build": "vite build",
     "docker": "docker build -t rocky-agent . && docker run -p 3001:3001 --env-file .env rocky-agent",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:docker": "./tests/docker-integration.test.sh"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.28",
