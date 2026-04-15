@@ -34,6 +34,7 @@ interface Message {
   timestamp: string;
   toolName?: string;
   toolInput?: Record<string, any>;
+  streaming?: boolean;
 }
 
 // Use relative URLs - Vite will proxy to the backend
@@ -64,7 +65,58 @@ export default function App() {
         // User message already added locally
         break;
 
+      case "assistant_delta":
+        // Streaming text delta — append to the last assistant message
+        // or create a new one if there isn't one being streamed
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last && last.role === "assistant" && last.streaming) {
+            // Append to existing streaming message
+            return [
+              ...prev.slice(0, -1),
+              { ...last, content: last.content + message.content },
+            ];
+          }
+          // Start a new streaming message
+          return [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              role: "assistant" as const,
+              content: message.content,
+              timestamp: new Date().toISOString(),
+              streaming: true,
+            },
+          ];
+        });
+        break;
+
+      case "assistant_message_end":
+        // Complete message received — finalize the streaming message
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last && last.role === "assistant" && last.streaming) {
+            return [
+              ...prev.slice(0, -1),
+              { ...last, streaming: false },
+            ];
+          }
+          // Fallback: add as a complete message
+          return [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              role: "assistant" as const,
+              content: message.content,
+              timestamp: new Date().toISOString(),
+            },
+          ];
+        });
+        setIsLoading(false);
+        break;
+
       case "assistant_message":
+        // Legacy: complete message without streaming (e.g. from history)
         setMessages((prev) => [
           ...prev,
           {

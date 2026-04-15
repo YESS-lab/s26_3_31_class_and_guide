@@ -76,28 +76,33 @@ export class Session {
   }
 
   private handleSDKMessage(message: any) {
-    if (message.type === "assistant") {
+    if (message.type === "stream_event") {
+      // Partial streaming message — broadcast text deltas for live typing
+      const event = message.event;
+      if (event.type === "content_block_delta" && event.delta?.type === "text_delta") {
+        this.broadcast({
+          type: "assistant_delta",
+          content: event.delta.text,
+          chatId: this.chatId,
+        });
+      }
+    } else if (message.type === "assistant") {
+      // Complete assistant message — store in chat history
       const content = message.message.content;
 
       if (typeof content === "string") {
         chatStore.addMessage(this.chatId, { role: "assistant", content });
+        // Signal end of this assistant message
         this.broadcast({
-          type: "assistant_message",
+          type: "assistant_message_end",
           content,
           chatId: this.chatId,
         });
       } else if (Array.isArray(content)) {
+        const fullText: string[] = [];
         for (const block of content) {
           if (block.type === "text") {
-            chatStore.addMessage(this.chatId, {
-              role: "assistant",
-              content: block.text,
-            });
-            this.broadcast({
-              type: "assistant_message",
-              content: block.text,
-              chatId: this.chatId,
-            });
+            fullText.push(block.text);
           } else if (block.type === "tool_use") {
             this.broadcast({
               type: "tool_use",
@@ -107,6 +112,17 @@ export class Session {
               chatId: this.chatId,
             });
           }
+        }
+        if (fullText.length > 0) {
+          chatStore.addMessage(this.chatId, {
+            role: "assistant",
+            content: fullText.join(""),
+          });
+          this.broadcast({
+            type: "assistant_message_end",
+            content: fullText.join(""),
+            chatId: this.chatId,
+          });
         }
       }
     } else if (message.type === "result") {

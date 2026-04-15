@@ -69,6 +69,7 @@ export class AgentSession {
         settingSources: ["project"],
         permissionMode: "bypassPermissions",
         allowDangerouslySkipPermissions: true,
+        includePartialMessages: true,
       },
     })[Symbol.asyncIterator]();
   }
