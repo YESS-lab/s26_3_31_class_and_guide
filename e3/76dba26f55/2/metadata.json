@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "e376dba26f55",
+  "session_id": "767ce74c-aa96-4526-88d7-2411f4000ccc",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-15T05:51:37.702747Z",
+  "branch": "rocky-hail-mary",
+  "checkpoints_count": 11,
+  "files_touched": [
+    ".claude/settings.json",
+    ".claude/settings.local.json",
+    "agent-config.json"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "b4a213fcc784",
+  "token_usage": {
+    "input_tokens": 1893,
+    "cache_creation_tokens": 538588,
+    "cache_read_tokens": 25193706,
+    "output_tokens": 90358,
+    "api_call_count": 181
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-15T05:51:37.106141Z",
+    "agent_lines": 2,
+    "human_added": 1720,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1722,
+    "agent_percentage": 0.11614401858304298
+  }
+}
