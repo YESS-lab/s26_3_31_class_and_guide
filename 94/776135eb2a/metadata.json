@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.4.8",
+  "checkpoint_id": "94776135eb2a",
+  "strategy": "manual-commit",
+  "branch": "rocky-hail-mary",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "client/App.tsx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/94/776135eb2a/0/metadata.json",
+      "transcript": "/94/776135eb2a/0/full.jsonl",
+      "context": "/94/776135eb2a/0/context.md",
+      "content_hash": "/94/776135eb2a/0/content_hash.txt",
+      "prompt": "/94/776135eb2a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 2164,
+    "cache_creation_tokens": 1625384,
+    "cache_read_tokens": 81078278,
+    "output_tokens": 140500,
+    "api_call_count": 386
+  }
+}
