@@ -22,7 +22,6 @@
       "Read(./.entire/metadata/**)"
     ],
     "additionalDirectories": [
-      "/Users/glnelson/dev/s26_march26_example_claude_skills_agent_prototyping/.claude",
       "./claude"
     ]
   },
