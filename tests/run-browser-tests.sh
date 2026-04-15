@@ -20,7 +20,7 @@ fi
 
 # Build image if it doesn't exist or code changed
 echo "Building Docker image..."
-docker build -t "$IMAGE_NAME" . > /dev/null 2>&1
+docker build -t "$IMAGE_NAME" .
 
 # Stop any existing test container
 docker stop "$CONTAINER_NAME" 2>/dev/null || true
