@@ -38,9 +38,9 @@ RED='\033[0;31m'
 YELLOW='\033[0;33m'
 NC='\033[0m'
 
-pass() { echo -e "  ${GREEN}PASS${NC} $1"; ((PASS++)); }
-fail() { echo -e "  ${RED}FAIL${NC} $1: $2"; ((FAIL++)); }
-skip() { echo -e "  ${YELLOW}SKIP${NC} $1: $2"; ((SKIP++)); }
+pass() { echo -e "  ${GREEN}PASS${NC} $1"; PASS=$((PASS + 1)); }
+fail() { echo -e "  ${RED}FAIL${NC} $1: $2"; FAIL=$((FAIL + 1)); }
+skip() { echo -e "  ${YELLOW}SKIP${NC} $1: $2"; SKIP=$((SKIP + 1)); }
 
 cleanup() {
   echo ""
@@ -294,11 +294,11 @@ else
     # Check if response sounds like Rocky (broken English, questions, short)
     RESPONSE_LOWER=$(echo "$RESPONSE" | tr '[:upper:]' '[:lower:]')
     ROCKY_SIGNALS=0
-    echo "$RESPONSE_LOWER" | grep -qi "question\|rocky\|understand\|amaze\|erid" && ((ROCKY_SIGNALS++)) || true
-    echo "$RESPONSE_LOWER" | grep -qi "stress\|feel\|hard\|overwhelm" && ((ROCKY_SIGNALS++)) || true
+    echo "$RESPONSE_LOWER" | grep -qi "question\|rocky\|understand\|amaze\|erid" && ROCKY_SIGNALS=$((ROCKY_SIGNALS + 1)) || true
+    echo "$RESPONSE_LOWER" | grep -qi "stress\|feel\|hard\|overwhelm" && ROCKY_SIGNALS=$((ROCKY_SIGNALS + 1)) || true
     # Check response is short (Rocky should be concise)
     SENTENCE_COUNT=$(echo "$RESPONSE" | grep -o '\.' | wc -l | tr -d ' ')
-    [ "$SENTENCE_COUNT" -le 5 ] && ((ROCKY_SIGNALS++)) || true
+    [ "$SENTENCE_COUNT" -le 5 ] && ROCKY_SIGNALS=$((ROCKY_SIGNALS + 1)) || true
 
     if [ "$ROCKY_SIGNALS" -ge 2 ]; then
       pass "Agent responds in character ($ROCKY_SIGNALS/3 Rocky signals)"
