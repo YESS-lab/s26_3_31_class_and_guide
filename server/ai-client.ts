@@ -70,6 +70,9 @@ export class AgentSession {
         permissionMode: "bypassPermissions",
         allowDangerouslySkipPermissions: true,
         includePartialMessages: true,
+        stderr: (data: string) => {
+          console.error("[claude-code stderr]", data);
+        },
       },
     })[Symbol.asyncIterator]();
   }

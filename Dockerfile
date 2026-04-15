@@ -1,9 +1,11 @@
 FROM node:22
 
+# Install git (Claude Code subprocess requires it)
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Install dependencies (--no-optional avoids platform-specific rollup bug,
-# then install rollup platform binaries explicitly)
+# Install dependencies
 COPY package.json package-lock.json ./
 RUN npm install --no-package-lock
 
@@ -15,6 +17,9 @@ RUN npm run build
 
 # Create uploads directory
 RUN mkdir -p uploads
+
+# Initialize a git repo (Claude Code expects to run inside a git repo)
+RUN git init && git add -A && git commit -m "docker build" --allow-empty
 
 # Expose port
 ENV PORT=3001
