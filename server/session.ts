@@ -2,11 +2,18 @@ import type { WSClient, PersonaData } from "./types.js";
 import { AgentSession } from "./ai-client.js";
 import { chatStore } from "./chat-store.js";
 
-// Session manages a single chat conversation with a long-lived agent
+/**
+ * Session manages a single chat conversation with a long-lived agent.
+ *
+ * The agent uses query() with a MessageQueue, so the output stream stays
+ * alive across multiple turns. We start listening once and messages flow
+ * through as the user sends them.
+ */
 export class Session {
   public readonly chatId: string;
   private subscribers: Set<WSClient> = new Set();
   private agentSession: AgentSession;
+  private isListening = false;
 
   // Per-session persona and uploaded file tracking
   private persona: PersonaData | undefined;
@@ -14,20 +21,13 @@ export class Session {
 
   constructor(chatId: string) {
     this.chatId = chatId;
-    this.agentSession = AgentSession.create();
+    this.agentSession = new AgentSession();
   }
 
-  /**
-   * Store persona data for this session. Called when the client sends
-   * persona information with a chat message.
-   */
   setPersona(persona: PersonaData) {
     this.persona = persona;
   }
 
-  /**
-   * Register an uploaded file path so the agent knows it can Read it.
-   */
   addUploadedFile(filePath: string) {
     if (!this.uploadedFiles.includes(filePath)) {
       this.uploadedFiles.push(filePath);
@@ -35,39 +35,16 @@ export class Session {
   }
 
   /**
-   * Send a user message to the agent and stream the response.
-   *
-   * V2 API: each send() + stream() cycle handles one turn.
-   * We iterate stream() per message so multi-turn works correctly.
+   * Start listening to the agent output stream. Called once —
+   * the stream stays alive across all turns because the underlying
+   * MessageQueue keeps yielding as new messages are pushed.
    */
-  sendMessage(content: string, persona?: PersonaData) {
-    // Store user message
-    chatStore.addMessage(this.chatId, {
-      role: "user",
-      content,
-    });
+  private async startListening() {
+    if (this.isListening) return;
+    this.isListening = true;
 
-    // Broadcast user message to subscribers
-    this.broadcast({
-      type: "user_message",
-      content,
-      chatId: this.chatId,
-    });
-
-    // Use provided persona or fall back to stored one
-    const effectivePersona = persona || this.persona;
-
-    // Send and stream response for this turn
-    this.streamTurn(content, effectivePersona);
-  }
-
-  private async streamTurn(content: string, persona?: PersonaData) {
     try {
-      for await (const message of this.agentSession.sendAndStream(
-        content,
-        persona,
-        this.uploadedFiles.length > 0 ? this.uploadedFiles : undefined,
-      )) {
+      for await (const message of this.agentSession.getOutputStream()) {
         this.handleSDKMessage(message);
       }
     } catch (error) {
@@ -76,15 +53,34 @@ export class Session {
     }
   }
 
+  sendMessage(content: string, persona?: PersonaData) {
+    chatStore.addMessage(this.chatId, { role: "user", content });
+
+    this.broadcast({
+      type: "user_message",
+      content,
+      chatId: this.chatId,
+    });
+
+    const effectivePersona = persona || this.persona;
+
+    this.agentSession.sendMessage(
+      content,
+      effectivePersona,
+      this.uploadedFiles.length > 0 ? this.uploadedFiles : undefined,
+    );
+
+    if (!this.isListening) {
+      this.startListening();
+    }
+  }
+
   private handleSDKMessage(message: any) {
     if (message.type === "assistant") {
       const content = message.message.content;
 
       if (typeof content === "string") {
-        chatStore.addMessage(this.chatId, {
-          role: "assistant",
-          content,
-        });
+        chatStore.addMessage(this.chatId, { role: "assistant", content });
         this.broadcast({
           type: "assistant_message",
           content,
@@ -152,14 +148,9 @@ export class Session {
   }
 
   private broadcastError(error: string) {
-    this.broadcast({
-      type: "error",
-      error,
-      chatId: this.chatId,
-    });
+    this.broadcast({ type: "error", error, chatId: this.chatId });
   }
 
-  // Close the session
   close() {
     this.agentSession.close();
   }

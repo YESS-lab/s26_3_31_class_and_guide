@@ -1,44 +1,80 @@
-import {
-  unstable_v2_createSession,
-  unstable_v2_resumeSession,
-} from "@anthropic-ai/claude-agent-sdk";
+import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { PersonaData } from "./types.js";
 
+type UserMessage = {
+  type: "user";
+  message: { role: "user"; content: string };
+};
+
 /**
- * AgentSession wraps the V2 Session API from the Claude Agent SDK.
+ * Async message queue for multi-turn conversations.
+ * Messages go in via push(), come out via async iteration.
+ * This is the standard pattern from the simple-chatapp demo.
+ */
+class MessageQueue {
+  private messages: UserMessage[] = [];
+  private waiting: ((msg: UserMessage) => void) | null = null;
+  private closed = false;
+
+  push(content: string) {
+    const msg: UserMessage = {
+      type: "user",
+      message: { role: "user", content },
+    };
+    if (this.waiting) {
+      this.waiting(msg);
+      this.waiting = null;
+    } else {
+      this.messages.push(msg);
+    }
+  }
+
+  async *[Symbol.asyncIterator](): AsyncIterableIterator<UserMessage> {
+    while (!this.closed) {
+      if (this.messages.length > 0) {
+        yield this.messages.shift()!;
+      } else {
+        yield await new Promise<UserMessage>((resolve) => {
+          this.waiting = resolve;
+        });
+      }
+    }
+  }
+
+  close() {
+    this.closed = true;
+  }
+}
+
+/**
+ * AgentSession wraps the Claude Agent SDK query() with project settings.
  *
- * The SDK handles skill discovery, tool permissions, and system prompt
- * automatically from the project's .claude/ directory and CLAUDE.md.
- * This wrapper only adds persona context injection.
+ * Uses settingSources: ['project'] so the SDK loads:
+ *   - .claude/skills/ (skill discovery and invocation)
+ *   - .claude/settings.json (tool permissions)
+ *   - CLAUDE.md (agent behavior instructions)
+ *
+ * This wrapper adds persona context injection on top.
  */
 export class AgentSession {
-  private session: any;
+  private queue = new MessageQueue();
+  private outputIterator: AsyncIterator<any> | null = null;
 
-  private constructor(session: any) {
-    this.session = session;
-  }
-
-  static create(): AgentSession {
-    const session = unstable_v2_createSession({
-      model: "sonnet",
-    });
-    return new AgentSession(session);
-  }
-
-  static resume(sessionId: string): AgentSession {
-    const session = unstable_v2_resumeSession(sessionId, {
-      model: "sonnet",
-    });
-    return new AgentSession(session);
-  }
-
-  get sessionId(): string {
-    return this.session.sessionId;
+  constructor() {
+    this.outputIterator = query({
+      prompt: this.queue as any,
+      options: {
+        maxTurns: 50,
+        model: "sonnet",
+        settingSources: ["project"],
+        permissionMode: "bypassPermissions",
+        allowDangerouslySkipPermissions: true,
+      },
+    })[Symbol.asyncIterator]();
   }
 
   /**
    * Turn persona data into a bracketed context string prepended to messages.
-   * e.g. [User context: Maya, 28, UX designer, stress-shops when overwhelmed]
    */
   static formatPersonaContext(persona: PersonaData): string {
     const parts: string[] = [];
@@ -52,11 +88,9 @@ export class AgentSession {
   }
 
   /**
-   * Send a message and yield the response stream for this turn.
-   * V2 API requires calling stream() after each send() — each stream()
-   * yields messages for that turn only, then completes.
+   * Send a message to the agent with optional persona context.
    */
-  async *sendAndStream(
+  sendMessage(
     content: string,
     persona?: PersonaData,
     uploadedFiles?: string[],
@@ -72,14 +106,24 @@ export class AgentSession {
     }
 
     fullMessage += content;
-    await this.session.send(fullMessage);
+    this.queue.push(fullMessage);
+  }
 
-    for await (const msg of this.session.stream()) {
-      yield msg;
+  /**
+   * Async generator yielding SDK messages from the output stream.
+   */
+  async *getOutputStream() {
+    if (!this.outputIterator) {
+      throw new Error("Session not initialized");
+    }
+    while (true) {
+      const { value, done } = await this.outputIterator.next();
+      if (done) break;
+      yield value;
     }
   }
 
   close() {
-    this.session.close();
+    this.queue.close();
   }
 }
