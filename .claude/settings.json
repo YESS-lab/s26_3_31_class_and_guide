@@ -12,17 +12,19 @@
       "Task",
       "WebFetch",
       "WebSearch",
+      "Edit(/.claude/skills/.*)",
+      "Edit(/.claude/skills/**)",
       "Edit(/.claude/skills/session-start/**)",
       "Edit(/.claude/skills/want-examination/**)",
       "Edit(/.claude/skills/reframe/**)",
       "Edit(/.claude/skills/flourishing-prompt/**)",
-      "Edit(/.claude/skills/gratitude-inventory/**)"
+      "Edit(/.claude/skills/gratitude-inventory/**)",
+      "Bash(docker info *)"
     ],
     "deny": [
       "Read(./.entire/metadata/**)"
     ],
     "additionalDirectories": [
-      "/Users/glnelson/dev/s26_march26_example_claude_skills_agent_prototyping/.claude",
       "./claude"
     ]
   },

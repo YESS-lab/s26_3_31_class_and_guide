@@ -1,0 +1,36 @@
+{
+  "name": "Mindful Consumption Guide",
+  "description": "Helping you examine wants, resist persuasion, and find genuine flourishing",
+  "welcome_message": "Hello! Is Rocky. Am here to help think about wants, see through tricky advertising, or just check in. What is on mind, question?",
+  "accent_color": "#4A7C59",
+  "persona_fields": [
+    {
+      "key": "name",
+      "label": "Name",
+      "type": "text",
+      "required": false,
+      "placeholder": "What should I call you?"
+    },
+    {
+      "key": "age",
+      "label": "Age",
+      "type": "number",
+      "required": false,
+      "placeholder": ""
+    },
+    {
+      "key": "about",
+      "label": "About you",
+      "type": "textarea",
+      "required": false,
+      "placeholder": "What's going on in your life? What brings you here?"
+    },
+    {
+      "key": "mood",
+      "label": "Current mood",
+      "type": "text",
+      "required": false,
+      "placeholder": "How are you feeling right now?"
+    }
+  ]
+}

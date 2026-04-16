@@ -1,0 +1,7 @@
+node_modules
+dist
+uploads
+.git
+.DS_Store
+.entire
+.claude/settings.local.json
