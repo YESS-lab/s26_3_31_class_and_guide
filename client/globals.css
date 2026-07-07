@@ -5,3 +5,49 @@
 :root {
   --accent-color: #4A7C59;
 }
+
+/* ---- "Translator" theme (Project Hail Mary-inspired) ---- */
+
+/* Blinking cursor on Rocky's translated text */
+@keyframes hm-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+.hm-cursor {
+  animation: hm-blink 1s steps(1) infinite;
+  margin-left: 2px;
+}
+
+/* Animated equalizer bars (translating indicator) */
+@keyframes hm-eq {
+  0%, 100% { transform: scaleY(0.2); }
+  50% { transform: scaleY(1); }
+}
+.hm-eq-bar {
+  animation: hm-eq 0.9s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Vertical rainbow spectrogram strip (sidebar edge) */
+@keyframes hm-flow {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 400%; }
+}
+.hm-spectral-strip {
+  background: linear-gradient(
+    180deg,
+    #e2472f, #f08c2f, #f0c62f, #3bc96b, #2bc0c9, #2b5bd7, #23244f, #e2472f
+  );
+  background-size: 100% 400%;
+  animation: hm-flow 10s linear infinite;
+  opacity: 0.75;
+}
+
+/* Faint worksheet grid behind the sample rows */
+.hm-grid {
+  background-color: #e3e8f0;
+  background-image:
+    linear-gradient(rgba(30, 50, 90, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 50, 90, 0.05) 1px, transparent 1px);
+  background-size: 100% 28px, 96px 100%;
+}

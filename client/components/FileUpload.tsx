@@ -1,13 +1,15 @@
 import React, { useRef, useState } from "react";
+import type { UITheme } from "../theme";
 
 interface FileUploadProps {
   sessionId: string | null;
   onFileUploaded: (file: { originalName: string; storedPath: string }) => void;
+  theme?: UITheme;
 }
 
 const ACCEPTED_TYPES = ".txt,.md,.json,.csv,.png,.jpg,.jpeg,.gif,.pdf";
 
-export function FileUpload({ sessionId, onFileUploaded }: FileUploadProps) {
+export function FileUpload({ sessionId, onFileUploaded, theme }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,7 +67,11 @@ export function FileUpload({ sessionId, onFileUploaded }: FileUploadProps) {
         onClick={handleClick}
         disabled={!sessionId || isUploading}
         title="Attach a file"
-        className="px-3 py-2 text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className={
+          theme === "translator"
+            ? "rounded-sm border border-[#2a3040] bg-[#0d0f15] px-3 py-2 text-[#9db4f0] transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+            : "px-3 py-2 text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        }
       >
         {isUploading ? (
           <span className="text-sm animate-pulse">...</span>

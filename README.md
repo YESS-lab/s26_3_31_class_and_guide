@@ -19,6 +19,13 @@ npm run dev
 
 Open http://localhost:5173
 
+## UI Themes
+
+The chat has two interfaces, switchable via the button in the top-right corner (choice is saved in the browser):
+
+- **Translator** (default) — inspired by the audio-analysis workstation from the *Project Hail Mary* film: messages appear as waveform sample rows, Rocky's replies arrive in a blue "audio to text translation" panel, and a colored spectrogram strip runs along the sidebar.
+- **Classic** — the traditional chat-bubble interface.
+
 ## Run Tests
 
 ```bash

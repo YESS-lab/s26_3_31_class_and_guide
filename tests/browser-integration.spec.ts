@@ -43,18 +43,16 @@ async function sendMessageAndWaitForResponse(
   await input.fill(message);
   await page.keyboard.press("Enter");
 
-  // Wait for "Thinking..." to appear then disappear (agent is processing)
-  const thinking = page.locator("text=Thinking...");
+  // Wait for the processing indicator to appear then disappear.
+  // Classic theme shows "Thinking...", translator theme shows "Translating...".
+  const thinking = page.getByText(/Thinking\.\.\.|Translating\.\.\./);
   await thinking.waitFor({ state: "visible", timeout: 15_000 }).catch(() => {
     // It may have already come and gone — that's fine
   });
   await thinking.waitFor({ state: "hidden", timeout: 120_000 });
 
-  // Get the last assistant message bubble (gray background, not blue)
-  // Assistant messages are in the non-blue bubbles
-  const assistantBubbles = page.locator(
-    '.bg-gray-100 p.whitespace-pre-wrap',
-  );
+  // Get the last assistant message (works in both UI themes)
+  const assistantBubbles = page.locator('[data-testid="assistant-message"]');
   const count = await assistantBubbles.count();
   expect(count).toBeGreaterThan(0);
 

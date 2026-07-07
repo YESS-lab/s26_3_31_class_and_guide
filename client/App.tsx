@@ -3,6 +3,7 @@ import useWebSocket, { ReadyState } from "react-use-websocket";
 import { ChatList } from "./components/ChatList";
 import { ChatWindow } from "./components/ChatWindow";
 import { PersonaEditor } from "./components/PersonaEditor";
+import { loadTheme, saveTheme, type UITheme } from "./theme";
 
 interface PersonaField {
   key: string;
@@ -50,6 +51,15 @@ export default function App() {
   const [config, setConfig] = useState<AgentConfig | null>(null);
   const [persona, setPersona] = useState<Record<string, any>>({});
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [theme, setTheme] = useState<UITheme>(loadTheme);
+
+  const toggleTheme = () => {
+    setTheme((prev) => {
+      const next: UITheme = prev === "translator" ? "classic" : "translator";
+      saveTheme(next);
+      return next;
+    });
+  };
 
   // Handle WebSocket messages
   const handleWSMessage = useCallback((message: any) => {
@@ -278,10 +288,16 @@ export default function App() {
     setUploadedFiles((prev) => [...prev, file.storedPath]);
   };
 
+  const isTranslator = theme === "translator";
+
   return (
-    <div className="flex h-screen">
+    <div className={`flex h-screen ${isTranslator ? "bg-[#c8d0dd]" : ""}`}>
       {/* Sidebar */}
-      <div className="w-64 shrink-0 flex flex-col bg-gray-900">
+      <div
+        className={`w-64 shrink-0 flex flex-col ${
+          isTranslator ? "bg-[#0d1119]" : "bg-gray-900"
+        }`}
+      >
         <div className="flex-1 overflow-y-auto">
           <ChatList
             chats={chats}
@@ -290,6 +306,7 @@ export default function App() {
             onNewChat={createChat}
             onDeleteChat={deleteChat}
             agentName={config?.name}
+            theme={theme}
           />
         </div>
         {config && config.persona_fields.length > 0 && (
@@ -297,27 +314,71 @@ export default function App() {
             fields={config.persona_fields}
             persona={persona}
             onPersonaChange={setPersona}
-            accentColor={config.accent_color}
+            accentColor={isTranslator ? "#3f6fe0" : config.accent_color}
           />
         )}
       </div>
 
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Branding header */}
-        {config && (
-          <div
-            className="px-6 py-3 border-b border-gray-200"
-            style={{ borderBottomColor: config.accent_color + "40" }}
-          >
-            <h1
-              className="text-lg font-semibold"
-              style={{ color: config.accent_color }}
+        {isTranslator ? (
+          <>
+            {/* Dark workstation toolbar band */}
+            <div className="flex items-center justify-between bg-[#14161d] px-4 py-1.5">
+              <div className="flex items-center gap-5 font-mono text-[10px] uppercase tracking-[0.25em] text-[#7c8aa5]">
+                <span className="text-[#dfe5f2]">◂ System</span>
+                <span className="hidden sm:inline">Samples</span>
+                <span className="hidden sm:inline">Translate</span>
+                <span className="hidden md:inline">Playback</span>
+                <span className="hidden md:inline">Tools</span>
+              </div>
+              <button
+                onClick={toggleTheme}
+                title="Switch to the traditional interface"
+                className="rounded-sm border border-[#2a3852] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-[#9db4f0] transition-colors hover:bg-[#1b2740]"
+              >
+                Classic UI
+              </button>
+            </div>
+            {/* Branding header */}
+            {config && (
+              <div className="flex items-end justify-between border-b border-[#1e325a]/30 bg-[#eef1f6] px-6 py-3">
+                <div>
+                  <h1 className="text-lg font-semibold tracking-wide text-[#16223f]">
+                    {config.name}
+                  </h1>
+                  <p className="text-sm text-[#4a5b7c]">{config.description}</p>
+                </div>
+                <span className="hidden font-mono text-[9px] uppercase tracking-[0.3em] text-[#7c8aa5] sm:block">
+                  Audio-to-text console
+                </span>
+              </div>
+            )}
+          </>
+        ) : (
+          config && (
+            <div
+              className="px-6 py-3 border-b border-gray-200 flex items-start justify-between"
+              style={{ borderBottomColor: config.accent_color + "40" }}
             >
-              {config.name}
-            </h1>
-            <p className="text-sm text-gray-500">{config.description}</p>
-          </div>
+              <div>
+                <h1
+                  className="text-lg font-semibold"
+                  style={{ color: config.accent_color }}
+                >
+                  {config.name}
+                </h1>
+                <p className="text-sm text-gray-500">{config.description}</p>
+              </div>
+              <button
+                onClick={toggleTheme}
+                title="Switch to the translator interface"
+                className="mt-1 rounded-lg border border-gray-300 px-3 py-1 text-xs text-gray-600 transition-colors hover:bg-gray-100"
+              >
+                Translator UI
+              </button>
+            </div>
+          )
         )}
         <ChatWindow
           chatId={selectedChatId}
@@ -328,6 +389,7 @@ export default function App() {
           welcomeMessage={config?.welcome_message}
           sessionId={selectedChatId}
           onFileUploaded={handleFileUploaded}
+          theme={theme}
         />
       </div>
     </div>
